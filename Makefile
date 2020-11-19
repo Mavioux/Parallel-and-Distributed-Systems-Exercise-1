@@ -12,7 +12,7 @@ triangle_v2:
 	$(CC) $(CFLAGS) -o triangle_v2 triangle_v2.c
 
 
-all: triangle triangle_v2
+all: clean triangle triangle_v2
 
 .PHONY: clean
 
