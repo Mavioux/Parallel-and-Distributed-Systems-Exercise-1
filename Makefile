@@ -5,19 +5,19 @@ CFLAGS=-O3
 
 default: all
 
-triangle: 
+triangle: triangle.c
 	$(CC) $(CFLAGS) -o triangle triangle.c
 
-triangle_v2: 
+triangle_v2: triangle_v2.c
 	$(CC) $(CFLAGS) -o triangle_v2 triangle_v2.c
 
-example_read:
-	$(CC) $(CFLAGS) -c mmio.c
-	$(CC) $(CFLAGS) -c coo2csc.c
-	$(CC) $(CFLAGS) -c example_read.c
-	$(CC) $(CFLAGS) -o example mmio.c coo2csc.c example_read.c
+triangle_v3: mmio.o coo2csc.o triangle_v3.o 
+	$(CC) $(CFLAGS) -o triangle_v3 mmio.c coo2csc.c triangle_v3.c
 
-all: clean triangle triangle_v2 example_read
+%.o: %.c
+	$(CC) $(CFLAGS) -c -o $@ $<
+
+all: triangle triangle_v2 triangle_v3
 
 .PHONY: clean
 
@@ -27,4 +27,4 @@ test:
 	
 
 clean:
-	rm -f triangle triangle_v2 example_read.o example mmio.o coo2csc.o
+	rm -f triangle triangle_v2 triangle_v3.o example mmio.o coo2csc.o
