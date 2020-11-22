@@ -24,3 +24,5 @@ matrixes/power-1138-bus/power-1138-bus.mtx
 matrixes/G1.mtx
 triangle_v3.o
 triangle_v3
+test.c
+triangle_v3_cilk

@@ -14,10 +14,13 @@ triangle_v2: triangle_v2.c
 triangle_v3: mmio.o coo2csc.o triangle_v3.o 
 	$(CC) $(CFLAGS) -o triangle_v3 mmio.c coo2csc.c triangle_v3.c
 
+triangle_v3_cilk: mmio.o coo2csc.o 
+	$(CC) $(CFLAGS) -o triangle_v3_cilk mmio.c coo2csc.c triangle_v3_cilk.c -fcilkplus -fsanitize=cilk
+
 %.o: %.c
 	$(CC) $(CFLAGS) -c -o $@ $<
 
-all: triangle triangle_v2 triangle_v3
+all: triangle triangle_v2 triangle_v3 triangle_v3_cilk
 
 .PHONY: clean
 
@@ -27,4 +30,4 @@ test:
 	
 
 clean:
-	rm -f triangle triangle_v2 triangle_v3.o example mmio.o coo2csc.o
+	rm -f triangle triangle_v2 riangle_v3 triangle_v3_cilk triangle_v3.o example mmio.o coo2csc.o
