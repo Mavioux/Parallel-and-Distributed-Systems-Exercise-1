@@ -43,7 +43,7 @@ int main(int argc, char *argv[])
 	}
     else    
     { 
-        if ((f = fopen("test2.mtx", "r")) == NULL) 
+        if ((f = fopen("test3.mtx", "r")) == NULL) 
             exit(1);
     }
 
@@ -94,9 +94,9 @@ int main(int argc, char *argv[])
     //     J[i]--;
     // }
 
-    /* For graphs without values */
     for (uint32_t i=0; i<nnz; i++)
     {
+        /* I is for the rows and J for the columns */
         fscanf(f, "%d %d \n", &I[i], &J[i]);
         I[i]--;  /* adjust from 1-based to 0-based */
         J[i]--;
@@ -108,7 +108,28 @@ int main(int argc, char *argv[])
         printf("COO matrix' columns and rows are not the same");
     }
 
-    coo2csc(cscRow, cscColumn, I, J, nnz, M, 0);
+    /* Because the code works for an upper triangular matrix, we change the J, I according to the symmetric table that we have as input and the help of flag */
+    /* flag 0 = upper triangular -> I,J | flag = 1 lower triangular -> J,I */
+    int flag = 0;
+    if(I[0] > J[0]) {
+        flag = 1;
+    }
+    switch (flag)
+    {
+    case 0:
+        printf("case 0 \n");
+        coo2csc(cscRow, cscColumn, I, J, nnz, M, 0);
+        break;
+    
+    case 1:
+        printf("case 1 \n");
+        coo2csc(cscRow, cscColumn, J, I, nnz, N, 0);
+        break;
+
+    default:
+        break;
+    }
+    
 
     printf("\n Rows: ");
     for(uint32_t i = 0; i < nnz; i++) {
