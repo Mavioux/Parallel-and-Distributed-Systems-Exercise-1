@@ -26,3 +26,6 @@ triangle_v3.o
 triangle_v3
 test.c
 triangle_v3_cilk
+triangle_v3_openmp
+test
+test.o

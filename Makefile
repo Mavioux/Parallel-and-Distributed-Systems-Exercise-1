@@ -17,17 +17,19 @@ triangle_v3: mmio.o coo2csc.o triangle_v3.o
 triangle_v3_cilk: mmio.o coo2csc.o 
 	$(CC) $(CFLAGS) -o triangle_v3_cilk mmio.c coo2csc.c triangle_v3_cilk.c -fcilkplus -fsanitize=cilk
 
+triangle_v3_openmp: mmio.o coo2csc.o triangle_v3_openmp.c
+	$(CC) $(CFLAGS) -o triangle_v3_openmp mmio.c coo2csc.c triangle_v3_openmp.c -fopenmp
+	
+test: test.o
+	$(CC) $(CFLAGS) -o test test.c -fopenmp
+
 %.o: %.c
 	$(CC) $(CFLAGS) -c -o $@ $<
 
-all: triangle triangle_v2 triangle_v3 triangle_v3_cilk
+all: triangle triangle_v2 triangle_v3 triangle_v3_cilk triangle_v3_openmp
 
 .PHONY: clean
-
-test:
-	@printf "\n** Testing triangle\n\n"
-	./triangle
 	
 
 clean:
-	rm -f triangle triangle_v2 riangle_v3 triangle_v3_cilk triangle_v3.o example mmio.o coo2csc.o
+	rm -f triangle triangle_v2 triangle_v3_cilk triangle_v3_openmp triangle_v3.o example mmio.o coo2csc.o 
