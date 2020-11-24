@@ -19,6 +19,9 @@ triangle_v3_cilk: mmio.o coo2csc.o
 
 triangle_v3_openmp: mmio.o coo2csc.o triangle_v3_openmp.c
 	$(CC) $(CFLAGS) -o triangle_v3_openmp mmio.c coo2csc.c triangle_v3_openmp.c -fopenmp
+
+triangle_v4: mmio.o coo2csc.o triangle_v4.o 
+	$(CC) $(CFLAGS) -o triangle_v4 mmio.c coo2csc.c triangle_v4.c
 	
 test: test.o
 	$(CC) $(CFLAGS) -o test test.c -fopenmp
