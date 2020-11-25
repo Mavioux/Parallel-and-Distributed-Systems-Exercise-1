@@ -23,7 +23,6 @@ int compare( const void* a, const void* b)
      else return 1;
 }
 
-
 int main(int argc, char *argv[])
 {
     int ret_code;
@@ -130,7 +129,7 @@ int main(int argc, char *argv[])
     uint32_t* B_values = (uint32_t *) malloc(2 * nnz * sizeof(uint32_t));
 
 
-    //B = A*A
+    /* B = A*A  */
     int values_counter = 0;
     B_cscColumn[0] = 0;
     for(int i = 0; i < N; i++) {
@@ -178,7 +177,7 @@ int main(int argc, char *argv[])
         }           
     B_cscColumn[i+1] = values_counter;
     }
-    B_cscColumn[N+1] = values_counter;
+    B_cscColumn[N+1] = values_counter; /* This is not necessary */
 
     /* For the D_CSC */
     int d_nnz = 0;
@@ -220,22 +219,6 @@ int main(int argc, char *argv[])
         d_cscColumn[i+1] = d_nnz;
     }
 
-    // printf("\n D Rows: ");
-    // for(uint32_t i = 0; i < d_nnz; i++) {
-    //     printf("%d ", d_cscRow[i]);
-    // }
-
-    // printf("\n D Columns: ");
-    // for(uint32_t i = 0; i < N+1; i++) {
-    //     printf("%d ", d_cscColumn[i]);
-    // }
-
-    // printf("\n D Values: ");
-    // for(uint32_t i = 0; i < d_nnz; i++) {
-    //     printf("%d ", d_values[i]);
-    // }
-
-
     /* Initialize c3 with zeros*/
     int* c3;
     c3 = malloc(N * sizeof c3);    
@@ -257,10 +240,10 @@ int main(int argc, char *argv[])
         result_vector[i] = 0;
     }
 
-    // Multiplication of a NxN matrix with a Nx1 vector
-    // We search the whole column (aka row since it is symmetric)
-    // Then every row that exists (aka column) has a value of 1
-    // So we add up the multiplication of each row element with the value of the
+    /* Multiplication of a NxN matrix with a Nx1 vector
+    We search the whole column (aka row since it is symmetric)
+    Then every row that exists (aka column) has a value of 1
+    So we add up the multiplication of each row element with the value of the*/
     for(int i = 0; i < N; i++) {
         printf("i: %d \n", i);
         for(int j = 0; j < d_cscColumn[i+1] - d_cscColumn[i]; j++) {

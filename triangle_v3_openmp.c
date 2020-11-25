@@ -71,19 +71,6 @@ int main(int argc, char *argv[])
     uint32_t* cscRow = (uint32_t *) malloc(nnz * sizeof(uint32_t));
     uint32_t* cscColumn = (uint32_t *) malloc((N + 1) * sizeof(uint32_t));
 
-
-    /* NOTE: when reading in doubles, ANSI C requires the use of the "l"  */
-    /*   specifier as in "%lg", "%lf", "%le", otherwise errors will occur */
-    /*  (ANSI C X3.159-1989, Sec. 4.9.6.2, p. 136 lines 13-15)            */
-
-    /* For graphs with values */
-    // for (int i=0; i<nnz; i++)
-    // {
-    //     fscanf(f, "%d %d %lg\n", &I[i], &J[i], &val[i]);
-    //     I[i]--;  /* adjust from 1-based to 0-based */
-    //     J[i]--;
-    // }
-
     for (uint32_t i=0; i<nnz; i++)
     {
         /* I is for the rows and J for the columns */
@@ -120,20 +107,7 @@ int main(int argc, char *argv[])
         break;
     }
     
-
-    printf("\n Rows: ");
-    for(uint32_t i = 0; i < nnz; i++) {
-        // printf("%d ", cscRow[i]);
-    }
-
-    printf("\n Columns: ");
-    for(uint32_t i = 0; i < N+1; i++) {
-        // printf("%d ", cscColumn[i]);
-    }
-
-    printf("\n");
-    
-    printf("Etoimos na psa3w hehe\n");
+    printf("Matrix Loaded, now Searching!\n");
 
     /* Initialize c3 with zeros*/
     int* c3;

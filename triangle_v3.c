@@ -71,19 +71,6 @@ int main(int argc, char *argv[])
     uint32_t* cscRow = (uint32_t *) malloc(nnz * sizeof(uint32_t));
     uint32_t* cscColumn = (uint32_t *) malloc((N + 1) * sizeof(uint32_t));
 
-
-    /* NOTE: when reading in doubles, ANSI C requires the use of the "l"  */
-    /*   specifier as in "%lg", "%lf", "%le", otherwise errors will occur */
-    /*  (ANSI C X3.159-1989, Sec. 4.9.6.2, p. 136 lines 13-15)            */
-
-    /* For graphs with values */
-    // for (int i=0; i<nnz; i++)
-    // {
-    //     fscanf(f, "%d %d %lg\n", &I[i], &J[i], &val[i]);
-    //     I[i]--;  /* adjust from 1-based to 0-based */
-    //     J[i]--;
-    // }
-
     for (uint32_t i=0; i<nnz; i++)
     {
         /* I is for the rows and J for the columns */
@@ -98,6 +85,9 @@ int main(int argc, char *argv[])
         printf("COO matrix' columns and rows are not the same");
     }
 
+    /*
+        Code that converts any symmetric matrix in upper triangular
+    */
     /* Because the code works for an upper triangular matrix, we change the J, I according to the symmetric table that we have as input and the help of flag */
     /* flag 0 = upper triangular -> I,J | flag = 1 lower triangular -> J,I */
     int flag = 0;
@@ -119,21 +109,6 @@ int main(int argc, char *argv[])
     default:
         break;
     }
-    
-
-    printf("\n Rows: ");
-    for(uint32_t i = 0; i < nnz; i++) {
-        // printf("%d ", cscRow[i]);
-    }
-
-    printf("\n Columns: ");
-    for(uint32_t i = 0; i < N+1; i++) {
-        // printf("%d ", cscColumn[i]);
-    }
-
-    printf("\n");
-    
-    printf("Etoimos na psa3w hehe\n");
 
     /* Initialize c3 with zeros*/
     int* c3;
@@ -141,6 +116,8 @@ int main(int argc, char *argv[])
     for(int i = 0; i < N; i++){
         c3[i] = 0;
     }
+
+    printf("Matrix Loaded, now Searching!\n");
 
     /* We measure time from this point */
     if( clock_gettime( CLOCK_REALTIME, &start) == -1 ) {
@@ -196,7 +173,7 @@ int main(int argc, char *argv[])
 
     duration = (stop.tv_sec - start.tv_sec) + (stop.tv_nsec - start.tv_nsec) / BILLION;
 
-
+    /* Only uncomment this to print a small c3 vector */
     // print1DMatrix(c3, N);
     printf("Sum: %d \n", sum);
     printf("Duration: %f \n", duration);
