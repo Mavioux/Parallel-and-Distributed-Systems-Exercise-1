@@ -83,19 +83,6 @@ int main(int argc, char *argv[])
     uint32_t* cscRow = (uint32_t *) malloc(2 * nnz * sizeof(uint32_t));
     uint32_t* cscColumn = (uint32_t *) malloc((N + 1) * sizeof(uint32_t));
 
-
-    /* NOTE: when reading in doubles, ANSI C requires the use of the "l"  */
-    /*   specifier as in "%lg", "%lf", "%le", otherwise errors will occur */
-    /*  (ANSI C X3.159-1989, Sec. 4.9.6.2, p. 136 lines 13-15)            */
-
-    /* For graphs with values */
-    // for (int i=0; i<nnz; i++)
-    // {
-    //     fscanf(f, "%d %d %lg\n", &I[i], &J[i], &val[i]);
-    //     I[i]--;  /* adjust from 1-based to 0-based */
-    //     J[i]--;
-    // }
-
     for (uint32_t i=0; i<nnz; i++)
     {
         /* I is for the rows and J for the columns */
@@ -115,17 +102,6 @@ int main(int argc, char *argv[])
     for(uint32_t i = 0; i < nnz; i++) {
         I[nnz + i] = J[i];
         J[nnz + i] = I[i];
-    }
-
-    /* Code that checks that I duplicate the elements properly */
-    printf("\n I: ");
-    for(uint32_t i = 0; i < 2* nnz; i++) {
-        printf("%d ", I[i]);
-    }
-    
-    printf("\n J: ");
-    for(uint32_t i = 0; i < 2 * nnz; i++) {
-        printf("%d ", J[i]);
     }
 
     /* Because the code works for an upper triangular matrix, we change the J, I according to the symmetric table that we have as input and the help of flag */
@@ -152,6 +128,7 @@ int main(int argc, char *argv[])
     uint32_t* B_cscRow = (uint32_t *) malloc(0 * sizeof(uint32_t));
     uint32_t* B_cscColumn = (uint32_t *) malloc((N + 1) * sizeof(uint32_t));
     uint32_t* B_values = (uint32_t *) malloc(2 * nnz * sizeof(uint32_t));
+
 
     //B = A*A
     int values_counter = 0;
@@ -202,88 +179,113 @@ int main(int argc, char *argv[])
     B_cscColumn[i+1] = values_counter;
     }
     B_cscColumn[N+1] = values_counter;
-    
 
-    printf("\n Rows: ");
-    for(uint32_t i = 0; i < values_counter; i++) {
-        printf("%d ", B_cscRow[i]);
+    /* For the D_CSC */
+    int d_nnz = 0;
+    uint32_t* d_cscRow = (uint32_t *) malloc(d_nnz * sizeof(uint32_t));
+    uint32_t* d_values = (uint32_t *) malloc(d_nnz * sizeof(uint32_t));
+    uint32_t* d_cscColumn = (uint32_t *) malloc((N + 1) * sizeof(uint32_t));
+
+    d_cscColumn[0] = 0;
+
+    /* D = A (hadamard product) B; */
+    for(int i = 0; i < N; i++) {
+        for(int j = 0; j < cscColumn[i+1] - cscColumn[i]; j++) {
+            /* We loop through every element of the A matrix that has a value of 1 */
+            int a_row = cscRow[cscColumn[i] + j];
+            int a_col = i;
+
+            /* Now we got to check whether, at this specific row and column, the B matrix has an element.
+            If so we multiply these two values and store the result at the position i,j of the D matrix.
+            We loop through the whole (same) B column and search for a b_row that matches our a_row.
+            If such a row exists we search for its value (his value won't be zero).
+            Then we store it in the D matrix and do d_nnz++.
+            If such a value does not exist we store nothing. */
+
+            for(int k = 0; k < B_cscColumn[a_col+1] - B_cscColumn[a_col]; k++) {
+                int b_row = B_cscRow[B_cscColumn[a_col] + k];
+                if(b_row == a_row) {
+                    /* We found a non zero element at i,j.
+                       It will be stored in the same column as A and B matrix.
+                       Also we do d_nnz++ and we dynamically allocate more space to d_rows so as to store the row index of the new value
+                       We also dynamically allocate more space to d_values so as to to store the value */
+                       d_nnz++;
+                       d_cscRow = realloc( d_cscRow, sizeof(int) * d_nnz);
+                       d_values = realloc( d_values, sizeof(int) * d_nnz);
+                       d_cscRow[d_nnz-1] = a_row;
+                       d_values[d_nnz-1] = B_values[B_cscColumn[a_col] + k];
+                }
+            }
+        }
+        d_cscColumn[i+1] = d_nnz;
     }
 
-    printf("\n Columns: ");
-    for(uint32_t i = 0; i < N+1; i++) {
-        printf("%d ", B_cscColumn[i]);
+    // printf("\n D Rows: ");
+    // for(uint32_t i = 0; i < d_nnz; i++) {
+    //     printf("%d ", d_cscRow[i]);
+    // }
+
+    // printf("\n D Columns: ");
+    // for(uint32_t i = 0; i < N+1; i++) {
+    //     printf("%d ", d_cscColumn[i]);
+    // }
+
+    // printf("\n D Values: ");
+    // for(uint32_t i = 0; i < d_nnz; i++) {
+    //     printf("%d ", d_values[i]);
+    // }
+
+
+    /* Initialize c3 with zeros*/
+    int* c3;
+    c3 = malloc(N * sizeof c3);    
+    for(int i = 0; i < N; i++){
+        c3[i] = 0;
     }
 
-    printf("\n Values: ");
-    for(uint32_t i = 0; i < values_counter; i++) {
-        printf("%d ", B_values[i]);
+    /* Initialize v with ones*/
+    int* v;
+    v = malloc(N * sizeof v);    
+    for(int i = 0; i < N; i++){
+        v[i] = 1;
     }
 
+    /* Initialize result with zeros*/
+    int* result_vector;
+    result_vector = malloc(N * sizeof result_vector);    
+    for(int i = 0; i < N; i++){
+        result_vector[i] = 0;
+    }
 
-    // /* Initialize c3 with zeros*/
-    // int* c3;
-    // c3 = malloc(N * sizeof c3);    
-    // for(int i = 0; i < N; i++){
-    //     c3[i] = 0;
-    // }
+    // Multiplication of a NxN matrix with a Nx1 vector
+    // We search the whole column (aka row since it is symmetric)
+    // Then every row that exists (aka column) has a value of 1
+    // So we add up the multiplication of each row element with the value of the
+    for(int i = 0; i < N; i++) {
+        printf("i: %d \n", i);
+        for(int j = 0; j < d_cscColumn[i+1] - d_cscColumn[i]; j++) {
+            int row = d_cscRow[d_cscColumn[i] + j];
+            int col = i;
+            // we now have the element (row, col) | its value is 1
+            // Because of its symmetry we also have the element (col, row)
+            result_vector[row] += 1 * v[col]; /* res[row] = A[row, col] * v[col] */
+            result_vector[col] += 1 * v[row]; /* res[col] = A[row, col] * v[row] */
+        }
+    }
 
-    // /* Initialize v with ones*/
-    // int* v;
-    // v = malloc(N * sizeof v);    
-    // for(int i = 0; i < N; i++){
-    //     v[i] = 1;
-    // }
+    for(int i = 0; i < N; i++) {
+        c3[i] = result_vector[i] / 2;
+    }
 
-    // /* Initialize result with zeros*/
-    // int* result_vector;
-    // result_vector = malloc(N * sizeof result_vector);    
-    // for(int i = 0; i < N; i++){
-    //     result_vector[i] = 0;
-    // }
-
-    // // /* We measure time from this point */
-    // // if( clock_gettime( CLOCK_REALTIME, &start) == -1 ) {
-    // //   perror( "clock gettime" );
-    // //   exit( EXIT_FAILURE );
-    // // }
-
-    // // Multiplication of a NxN matrix with a Nx1 vector
-    // // We search the whole column (aka row since it is symmetric)
-    // // Then every row that exists (aka column) has a value of 1
-    // // So we add up the multiplication of each row element with the value of the
-    // for(int i = 0; i < N; i++) {
-    //     printf("i: %d \n", i);
-    //     for(int j = 0; j < cscColumn[i+1] - cscColumn[i]; j++) {
-    //         int row = cscRow[cscColumn[i] + j];
-    //         int col = i;
-    //         // we now have the element (row, col) | its value is 1
-    //         // Because of its symmetry we also have the element (col, row)
-    //         result_vector[row] += 1 * v[col]; /* res[row] = A[row, col] * v[col] */
-    //         result_vector[col] += 1 * v[row]; /* res[col] = A[row, col] * v[row] */
-    //     }
-    // }
-
-    // /* We stop measuring time at this point */
-    // if( clock_gettime( CLOCK_REALTIME, &stop) == -1 ) {
-    //   perror( "clock gettime" );
-    //   exit( EXIT_FAILURE );
-    // }
-
-    // duration = (stop.tv_sec - start.tv_sec) + (stop.tv_nsec - start.tv_nsec) / BILLION;
-
-    // printf("V matrix \n");
-    // print1DMatrix(v, N);
-    // printf("Result vector \n");
-    // print1DMatrix(result_vector, N);
-    // printf("Sum: %d \n", sum);
-    // printf("Duration: %f \n", duration);
+    printf("\nResult vector \n");
+    print1DMatrix(c3, N);
 
     /* Deallocate the arrays */
     free(I);
     free(J);
-    // free(c3);
-    // free(v);
-    // free(result_vector);
+    free(c3);
+    free(v);
+    free(result_vector);
 
 	return 0;
 }
