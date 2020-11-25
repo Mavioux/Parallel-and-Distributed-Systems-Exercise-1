@@ -29,7 +29,7 @@ test: test.o
 %.o: %.c
 	$(CC) $(CFLAGS) -c -o $@ $<
 
-all: triangle triangle_v2 triangle_v3 triangle_v3_cilk triangle_v3_openmp
+all: triangle triangle_v2 triangle_v3 triangle_v3_cilk triangle_v3_openmp triangle_v4
 
 .PHONY: clean
 	
