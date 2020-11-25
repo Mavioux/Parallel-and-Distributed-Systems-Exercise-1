@@ -13,6 +13,17 @@ void print1DMatrix(int* matrix, int size){
     }
 }
 
+int compare( const void* a, const void* b)
+{
+     int int_a = * ( (int*) a );
+     int int_b = * ( (int*) b );
+
+     if ( int_a == int_b ) return 0;
+     else if ( int_a < int_b ) return -1;
+     else return 1;
+}
+
+
 int main(int argc, char *argv[])
 {
     int ret_code;
@@ -100,9 +111,21 @@ int main(int argc, char *argv[])
     }
 
     /* Add each value once more so we get the full symmetric matrix */
+    /* Requires every element in the diagonal to be zero */
     for(uint32_t i = 0; i < nnz; i++) {
         I[nnz + i] = J[i];
         J[nnz + i] = I[i];
+    }
+
+    /* Code that checks that I duplicate the elements properly */
+    printf("\n I: ");
+    for(uint32_t i = 0; i < 2* nnz; i++) {
+        printf("%d ", I[i]);
+    }
+    
+    printf("\n J: ");
+    for(uint32_t i = 0; i < 2 * nnz; i++) {
+        printf("%d ", J[i]);
     }
 
     /* Because the code works for an upper triangular matrix, we change the J, I according to the symmetric table that we have as input and the help of flag */
@@ -125,6 +148,14 @@ int main(int argc, char *argv[])
         break;
     }
 
+    /* For the B matrix in CSC format */
+    uint32_t* B_cscRow = (uint32_t *) malloc(0 * sizeof(uint32_t));
+    uint32_t* B_cscColumn = (uint32_t *) malloc((N + 1) * sizeof(uint32_t));
+    uint32_t* B_values = (uint32_t *) malloc(2 * nnz * sizeof(uint32_t));
+
+    //B = A*A
+    int values_counter = 0;
+    B_cscColumn[0] = 0;
     for(int i = 0; i < N; i++) {
         int k_size = cscColumn[i+1] - cscColumn[i];
         int* k;
@@ -132,29 +163,61 @@ int main(int argc, char *argv[])
         for(int w = 0; w < k_size; w++) {
             k[w] = cscRow[cscColumn[i] + w];
         }
+        
         for(int j = 0; j < N; j++) {
+            int flag = 0;
+            int value = 0;
             int l_size = cscColumn[j+1] - cscColumn[j];
             int *l;
-            l = realloc(k, (k_size + l_size) * sizeof(int));
+            l = malloc((k_size + l_size) * sizeof(int));
+            /* Create the l vector with the appropriate values */
+            for(int x = 0; x < k_size; x++) {
+                l[x] = k[x];
+            }
             for(int x = 0; x < l_size; x++) {
                 l[k_size + x] = cscRow[cscColumn[j] + x];
             }
+
             // We have in our hands the array l with the columns of the i-th row and the rows of the j-th column
             // We have to sort it and for each duplicate element -> c[i,j]++
+            qsort( l, (k_size + l_size), sizeof(int), compare );
             
-        }
+            // printf("k size: %d\n", cscColumn[i+1] - cscColumn[i]);
+            // printf("l size: %d\n", cscColumn[j+1] - cscColumn[j]);
+            for(int index = 0; index < (k_size + l_size - 1); index++) {
+                if(l[index] == l[index+1]) {
+                    value++;
+                    flag = 1;
+                }
+            }
+            if(value) {
+                printf("Element in row %d, col %d \n", i, j);
+                values_counter++;
+                B_cscRow = realloc(B_cscRow, values_counter * sizeof(int));
+                B_cscRow[values_counter - 1] = j;
+                B_values = realloc(B_values, values_counter * sizeof(int));
+                B_values[values_counter - 1] = value;
+            }
+        }           
+    B_cscColumn[i+1] = values_counter;
     }
+    B_cscColumn[N+1] = values_counter;
     
 
-    // printf("\n Rows: ");
-    // for(uint32_t i = 0; i < 2* nnz; i++) {
-    //     printf("%d ", cscRow[i]);
-    // }
+    printf("\n Rows: ");
+    for(uint32_t i = 0; i < values_counter; i++) {
+        printf("%d ", B_cscRow[i]);
+    }
 
-    // printf("\n Columns: ");
-    // for(uint32_t i = 0; i < N+1; i++) {
-    //     printf("%d ", cscColumn[i]);
-    // }
+    printf("\n Columns: ");
+    for(uint32_t i = 0; i < N+1; i++) {
+        printf("%d ", B_cscColumn[i]);
+    }
+
+    printf("\n Values: ");
+    for(uint32_t i = 0; i < values_counter; i++) {
+        printf("%d ", B_values[i]);
+    }
 
 
     // /* Initialize c3 with zeros*/
