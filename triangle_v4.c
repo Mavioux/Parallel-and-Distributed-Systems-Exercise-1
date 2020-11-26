@@ -31,6 +31,7 @@ int main(int argc, char *argv[])
     uint32_t M, N, nnz;   
     int *I, *J;
     double *val;
+    int binary = atoi(argv[2]);
 
     /* Initialize the timespec values and the duration value for the calculation of the computation time */
     struct timespec start, stop;
@@ -38,11 +39,11 @@ int main(int argc, char *argv[])
 
     if (argc < 2)
 	{
-		fprintf(stderr, "Usage: %s [martix-market-filename]\n", argv[0]);
+		fprintf(stderr, "Usage: %s [martix-market-filename] [0 for binary or 1 for non binary]\n", argv[0]);
 		exit(1);
 	}
     else    
-    { 
+    {
         if ((f = fopen(argv[1], "r")) == NULL) 
             exit(1);
     }
@@ -82,24 +83,37 @@ int main(int argc, char *argv[])
     uint32_t* cscRow = (uint32_t *) malloc(2 * nnz * sizeof(uint32_t));
     uint32_t* cscColumn = (uint32_t *) malloc((N + 1) * sizeof(uint32_t));
 
-    // /* use this if the source file is binary */
-    // // for (uint32_t i=0; i<nnz; i++)
-    // // {
-    // //     /* I is for the rows and J for the columns */
-    // //     fscanf(f, "%d %d \n", &I[i], &J[i]);
-    // //     I[i]--;  /* adjust from 1-based to 0-based */
-    // //     J[i]--;
-    // // }
+    /* Depending on the second argument of the main call our original matrix may be binary or non binary so we read the file accordingly */
+    switch (binary) 
+    {
+    case 0:
+        /* use this if the source file is not binary */
+        for (uint32_t i=0; i<nnz; i++)
+        {
+            /* I is for the rows and J for the columns */
+            fscanf(f, "%d %d %lg\n", &I[i], &J[i], &val[i]);
+            I[i]--;  /* adjust from 1-based to 0-based */
+            J[i]--;
+        }
+        break;
 
-    // /* use this if the source file is not binary */
-    // for (uint32_t i=0; i<nnz; i++)
-    // {
-    //     /* I is for the rows and J for the columns */
-    //     fscanf(f, "%d %d %lg\n", &I[i], &J[i], &val[i]);
-    //     I[i]--;  /* adjust from 1-based to 0-based */
-    //     J[i]--;
-    // }
-
+    case 1:
+        /* use this if the source file is binary */
+        for (uint32_t i=0; i<nnz; i++)
+        {
+            /* I is for the rows and J for the columns */
+            fscanf(f, "%d %d \n", &I[i], &J[i]);
+            I[i]--;  /* adjust from 1-based to 0-based */
+            J[i]--;
+        }
+        break;
+    
+    default:
+        printf("Not a valid second argument was passed\n");
+        exit(1);
+        break;
+    }
+    
     if (f !=stdin) fclose(f);
 
     if(M != N) {
