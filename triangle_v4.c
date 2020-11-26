@@ -82,13 +82,23 @@ int main(int argc, char *argv[])
     uint32_t* cscRow = (uint32_t *) malloc(2 * nnz * sizeof(uint32_t));
     uint32_t* cscColumn = (uint32_t *) malloc((N + 1) * sizeof(uint32_t));
 
-    for (uint32_t i=0; i<nnz; i++)
-    {
-        /* I is for the rows and J for the columns */
-        fscanf(f, "%d %d \n", &I[i], &J[i]);
-        I[i]--;  /* adjust from 1-based to 0-based */
-        J[i]--;
-    }
+    // /* use this if the source file is binary */
+    // // for (uint32_t i=0; i<nnz; i++)
+    // // {
+    // //     /* I is for the rows and J for the columns */
+    // //     fscanf(f, "%d %d \n", &I[i], &J[i]);
+    // //     I[i]--;  /* adjust from 1-based to 0-based */
+    // //     J[i]--;
+    // // }
+
+    // /* use this if the source file is not binary */
+    // for (uint32_t i=0; i<nnz; i++)
+    // {
+    //     /* I is for the rows and J for the columns */
+    //     fscanf(f, "%d %d %lg\n", &I[i], &J[i], &val[i]);
+    //     I[i]--;  /* adjust from 1-based to 0-based */
+    //     J[i]--;
+    // }
 
     if (f !=stdin) fclose(f);
 
@@ -167,7 +177,6 @@ int main(int argc, char *argv[])
                 }
             }
             if(value) {
-                printf("Element in row %d, col %d \n", i, j);
                 values_counter++;
                 B_cscRow = realloc(B_cscRow, values_counter * sizeof(int));
                 B_cscRow[values_counter - 1] = j;
@@ -240,19 +249,35 @@ int main(int argc, char *argv[])
         result_vector[i] = 0;
     }
 
+    // printf("\n D Rows: ");
+    // for(uint32_t i = 0; i < d_nnz; i++) {
+    //     printf("%d ", d_cscRow[i]);
+    // }
+
+    // printf("\n D Columns: ");
+    // for(uint32_t i = 0; i < N+1; i++) {
+    //     printf("%d ", d_cscColumn[i]);
+    // }
+
+    // printf("\n D Values: ");
+    // for(uint32_t i = 0; i < d_nnz; i++) {
+    //     printf("%d ", d_values[i]);
+    // }
+
     /* Multiplication of a NxN matrix with a Nx1 vector
     We search the whole column (aka row since it is symmetric)
-    Then every row that exists (aka column) has a value of 1
+    Then every row that exists (aka column) has a specific
     So we add up the multiplication of each row element with the value of the*/
     for(int i = 0; i < N; i++) {
-        printf("i: %d \n", i);
+        // printf("i: %d \n", i);
         for(int j = 0; j < d_cscColumn[i+1] - d_cscColumn[i]; j++) {
             int row = d_cscRow[d_cscColumn[i] + j];
             int col = i;
-            // we now have the element (row, col) | its value is 1
+            int value = d_values[d_cscColumn[i] + j];
+            // we now have the element (row, col) | its value is value[]
             // Because of its symmetry we also have the element (col, row)
-            result_vector[row] += 1 * v[col]; /* res[row] = A[row, col] * v[col] */
-            result_vector[col] += 1 * v[row]; /* res[col] = A[row, col] * v[row] */
+            result_vector[row] += value * v[col]; /* res[row] += A[row, col] * v[col] */
+            // result_vector[col] += value * v[row]; /* res[col] += A[row, col] * v[row] */
         }
     }
 
@@ -260,7 +285,10 @@ int main(int argc, char *argv[])
         c3[i] = result_vector[i] / 2;
     }
 
-    printf("\nResult vector \n");
+    // printf("\nResult vector \n");
+    // print1DMatrix(result_vector, N);
+
+    printf("\nc3 vector \n");
     print1DMatrix(c3, N);
 
     /* Deallocate the arrays */

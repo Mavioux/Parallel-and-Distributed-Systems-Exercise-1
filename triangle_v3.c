@@ -71,6 +71,7 @@ int main(int argc, char *argv[])
     uint32_t* cscRow = (uint32_t *) malloc(nnz * sizeof(uint32_t));
     uint32_t* cscColumn = (uint32_t *) malloc((N + 1) * sizeof(uint32_t));
 
+    /* use this if the source file is binary */
     for (uint32_t i=0; i<nnz; i++)
     {
         /* I is for the rows and J for the columns */
@@ -78,6 +79,15 @@ int main(int argc, char *argv[])
         I[i]--;  /* adjust from 1-based to 0-based */
         J[i]--;
     }
+
+    // /* use this if the source file is not binary */
+    // for (uint32_t i=0; i<nnz; i++)
+    // {
+    //     /* I is for the rows and J for the columns */
+    //     fscanf(f, "%d %d %lg\n", &I[i], &J[i], &val[i]);
+    //     I[i]--;  /* adjust from 1-based to 0-based */
+    //     J[i]--;
+    // }
 
     if (f !=stdin) fclose(f);
 
@@ -127,7 +137,6 @@ int main(int argc, char *argv[])
 
     int sum = 0;
     for(int i = 1; i < N; i++) {
-        printf("i: %d \n", i);
         for(int j = 0; j < cscColumn[i+1] - cscColumn[i]; j++) {
             int row1 = cscRow[cscColumn[i] + j];
             int col1 = i;
@@ -174,7 +183,7 @@ int main(int argc, char *argv[])
     duration = (stop.tv_sec - start.tv_sec) + (stop.tv_nsec - start.tv_nsec) / BILLION;
 
     /* Only uncomment this to print a small c3 vector */
-    // print1DMatrix(c3, N);
+    print1DMatrix(c3, N);
     printf("Sum: %d \n", sum);
     printf("Duration: %f \n", duration);
 
