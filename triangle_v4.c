@@ -152,6 +152,39 @@ int main(int argc, char *argv[])
     uint32_t* B_cscColumn = (uint32_t *) malloc((N + 1) * sizeof(uint32_t));
     uint32_t* B_values = (uint32_t *) malloc(2 * nnz * sizeof(uint32_t));
 
+    /* For the D_CSC */
+    int d_nnz = 0;
+    uint32_t* d_cscRow = (uint32_t *) malloc(d_nnz * sizeof(uint32_t));
+    uint32_t* d_values = (uint32_t *) malloc(d_nnz * sizeof(uint32_t));
+    uint32_t* d_cscColumn = (uint32_t *) malloc((N + 1) * sizeof(uint32_t));
+
+    /* Initialize c3 with zeros*/
+    int* c3;
+    c3 = malloc(N * sizeof c3);    
+    for(int i = 0; i < N; i++){
+        c3[i] = 0;
+    }
+
+    /* Initialize v with ones*/
+    int* v;
+    v = malloc(N * sizeof v);    
+    for(int i = 0; i < N; i++){
+        v[i] = 1;
+    }
+
+    /* Initialize result with zeros*/
+    int* result_vector;
+    result_vector = malloc(N * sizeof result_vector);    
+    for(int i = 0; i < N; i++){
+        result_vector[i] = 0;
+    }
+
+
+    /* We measure time from this point */
+    if( clock_gettime( CLOCK_REALTIME, &start) == -1 ) {
+      perror( "clock gettime" );
+      exit( EXIT_FAILURE );
+    }
 
     /* B = A*A  */
     int values_counter = 0;
@@ -202,12 +235,6 @@ int main(int argc, char *argv[])
     }
     B_cscColumn[N+1] = values_counter; /* This is not necessary */
 
-    /* For the D_CSC */
-    int d_nnz = 0;
-    uint32_t* d_cscRow = (uint32_t *) malloc(d_nnz * sizeof(uint32_t));
-    uint32_t* d_values = (uint32_t *) malloc(d_nnz * sizeof(uint32_t));
-    uint32_t* d_cscColumn = (uint32_t *) malloc((N + 1) * sizeof(uint32_t));
-
     d_cscColumn[0] = 0;
 
     /* D = A (hadamard product) B; */
@@ -242,42 +269,6 @@ int main(int argc, char *argv[])
         d_cscColumn[i+1] = d_nnz;
     }
 
-    /* Initialize c3 with zeros*/
-    int* c3;
-    c3 = malloc(N * sizeof c3);    
-    for(int i = 0; i < N; i++){
-        c3[i] = 0;
-    }
-
-    /* Initialize v with ones*/
-    int* v;
-    v = malloc(N * sizeof v);    
-    for(int i = 0; i < N; i++){
-        v[i] = 1;
-    }
-
-    /* Initialize result with zeros*/
-    int* result_vector;
-    result_vector = malloc(N * sizeof result_vector);    
-    for(int i = 0; i < N; i++){
-        result_vector[i] = 0;
-    }
-
-    // printf("\n D Rows: ");
-    // for(uint32_t i = 0; i < d_nnz; i++) {
-    //     printf("%d ", d_cscRow[i]);
-    // }
-
-    // printf("\n D Columns: ");
-    // for(uint32_t i = 0; i < N+1; i++) {
-    //     printf("%d ", d_cscColumn[i]);
-    // }
-
-    // printf("\n D Values: ");
-    // for(uint32_t i = 0; i < d_nnz; i++) {
-    //     printf("%d ", d_values[i]);
-    // }
-
     /* Multiplication of a NxN matrix with a Nx1 vector
     We search the whole column (aka row since it is symmetric)
     Then every row that exists (aka column) has a specific
@@ -299,11 +290,15 @@ int main(int argc, char *argv[])
         c3[i] = result_vector[i] / 2;
     }
 
-    // printf("\nResult vector \n");
-    // print1DMatrix(result_vector, N);
+    /* We stop measuring time at this point */
+    if( clock_gettime( CLOCK_REALTIME, &stop) == -1 ) {
+      perror( "clock gettime" );
+      exit( EXIT_FAILURE );
+    }
 
     printf("\nc3 vector \n");
     print1DMatrix(c3, N);
+    printf("\nDuration: %f",  duration);
 
     /* Deallocate the arrays */
     free(I);
