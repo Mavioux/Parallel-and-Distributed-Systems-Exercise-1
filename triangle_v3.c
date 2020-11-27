@@ -205,9 +205,7 @@ int main(int argc, char *argv[])
     else {
         print1DMatrix(c3,N);
     }
-
     
-
     printf("Sum: %d \n", sum);
     printf("Duration: %f \n", duration);
 

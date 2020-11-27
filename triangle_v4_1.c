@@ -268,9 +268,10 @@ int main(int argc, char *argv[])
     // }
 
     // print1DMatrix(c3, N);
+    duration = (stop.tv_sec - start.tv_sec) + (stop.tv_nsec - start.tv_nsec) / BILLION;
 
     printf("\Triangle Sum: %d",  triangle_sum);
-    printf("\nDuration: %f",  duration);
+    printf("\nDuration: %f\n",  duration);
 
     /* Deallocate the arrays */
     free(I);
