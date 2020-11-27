@@ -196,8 +196,18 @@ int main(int argc, char *argv[])
 
     duration = (stop.tv_sec - start.tv_sec) + (stop.tv_nsec - start.tv_nsec) / BILLION;
 
-    /* Only uncomment this to print a small c3 vector */
-    print1DMatrix(c3, N);
+    if(N > 5) {
+        printf("\n");
+        for(int i = 5; i > -1; i--) {
+            printf("%d: %d\n",N-1-i, c3[N-1-i]);
+        }
+    }
+    else {
+        print1DMatrix(c3,N);
+    }
+
+    
+
     printf("Sum: %d \n", sum);
     printf("Duration: %f \n", duration);
 
