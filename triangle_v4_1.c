@@ -31,10 +31,6 @@ int main(int argc, char *argv[])
     double *val;
     int binary = atoi(argv[2]);
 
-    /* Initialize the timespec values and the duration value for the calculation of the computation time */
-    struct timespec start, stop;
-    double duration;
-
     if (argc < 2)
 	{
 		fprintf(stderr, "Usage: %s [martix-market-filename] [0 for binary or 1 for non binary]\n", argv[0]);
@@ -247,12 +243,6 @@ int main(int argc, char *argv[])
     }
 
     triangle_sum = triangle_sum / 3;
-
-    /* We stop measuring time at this point */
-    if( clock_gettime( CLOCK_REALTIME, &stop) == -1 ) {
-      perror( "clock gettime" );
-      exit( EXIT_FAILURE );
-    }
 
     /* We stop measuring time at this point */
     clock_t end = clock();
