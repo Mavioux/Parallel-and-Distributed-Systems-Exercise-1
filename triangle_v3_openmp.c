@@ -1,8 +1,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+
 #include "mmio.h"
 #include "coo2csc.h"
+
+#include <omp.h>
+
+#define CHUNKSIZE   100
 
 void print1DMatrix(int* matrix, int size){
     int i = 0;
@@ -19,10 +24,13 @@ int main(int argc, char *argv[])
     uint32_t M, N, nnz;   
     int *I, *J;
     double *val;
+    int binary = atoi(argv[2]);
+    int num_of_threads = atoi(argv[3]);
+    struct timeval start, end;
 
     if (argc < 2)
 	{
-		fprintf(stderr, "Usage: %s [martix-market-filename]\n", argv[0]);
+		fprintf(stderr, "Usage: %s [martix-market-filename] [0 for non binary 1 for binary matrix]\n", argv[0]);
 		exit(1);
 	}
     else    
@@ -65,12 +73,35 @@ int main(int argc, char *argv[])
     uint32_t* cscRow = (uint32_t *) malloc(nnz * sizeof(uint32_t));
     uint32_t* cscColumn = (uint32_t *) malloc((N + 1) * sizeof(uint32_t));
 
-    for (uint32_t i=0; i<nnz; i++)
+    /* Depending on the second argument of the main call our original matrix may be binary or non binary so we read the file accordingly */
+    switch (binary) 
     {
-        /* I is for the rows and J for the columns */
-        fscanf(f, "%d %d \n", &I[i], &J[i]);
-        I[i]--;  /* adjust from 1-based to 0-based */
-        J[i]--;
+    case 0:
+        /* use this if the source file is not binary */
+        for (uint32_t i=0; i<nnz; i++)
+        {
+            /* I is for the rows and J for the columns */
+            fscanf(f, "%d %d %lg\n", &I[i], &J[i], &val[i]);
+            I[i]--;  /* adjust from 1-based to 0-based */
+            J[i]--;
+        }
+        break;
+
+    case 1:
+        /* use this if the source file is binary */
+        for (uint32_t i=0; i<nnz; i++)
+        {
+            /* I is for the rows and J for the columns */
+            fscanf(f, "%d %d \n", &I[i], &J[i]);
+            I[i]--;  /* adjust from 1-based to 0-based */
+            J[i]--;
+        }
+        break;
+    
+    default:
+        printf("Not a valid second argument was passed\n");
+        exit(1);
+        break;
     }
 
     if (f !=stdin) fclose(f);
@@ -79,6 +110,9 @@ int main(int argc, char *argv[])
         printf("COO matrix' columns and rows are not the same");
     }
 
+    /*
+        Code that converts any symmetric matrix in upper triangular
+    */
     /* Because the code works for an upper triangular matrix, we change the J, I according to the symmetric table that we have as input and the help of flag */
     /* flag 0 = upper triangular -> I,J | flag = 1 lower triangular -> J,I */
     int flag = 0;
@@ -100,8 +134,6 @@ int main(int argc, char *argv[])
     default:
         break;
     }
-    
-    printf("Matrix Loaded, now Searching!\n");
 
     /* Initialize c3 with zeros*/
     int* c3;
@@ -110,16 +142,16 @@ int main(int argc, char *argv[])
         c3[i] = 0;
     }
 
+    printf("Matrix Loaded, now Searching!\n");
+
     /* We measure time from this point */
-    clock_t begin = clock();
+    gettimeofday(&start,NULL);
 
     int sum = 0;
-    int chunk;
     omp_set_dynamic(0);     // Explicitly disable dynamic teams
-    omp_set_num_threads(4); // Use 4 threads for all consecutive parallel regions
-    #pragma omp parallel for shared(sum)
+    omp_set_num_threads(num_of_threads); // Use num_of_threads threads for all consecutive parallel regions
+    #pragma omp parallel for shared(sum, c3)
     for(int i = 1; i < N; i++) {
-        printf("i: %d \n", i);
         for(int j = 0; j < cscColumn[i+1] - cscColumn[i]; j++) {
             int row1 = cscRow[cscColumn[i] + j];
             int col1 = i;
@@ -129,6 +161,7 @@ int main(int argc, char *argv[])
                 // now i am searching for the x,y element 
                 // x = col1
                 // y = row3
+                
                 if(row3>col1) {
                     // loop the whole row3 column
                     for (int l = 0; l < cscColumn[row3+1] -cscColumn[row3]; l++) {
@@ -160,11 +193,9 @@ int main(int argc, char *argv[])
     }
 
     /* We stop measuring time at this point */
-    clock_t end = clock();
-    double duration = (double)(end - begin) / CLOCKS_PER_SEC;
+    gettimeofday(&end,NULL);
+    double duration = (end.tv_sec+(double)end.tv_usec/1000000) - (start.tv_sec+(double)start.tv_usec/1000000);
 
-
-    // print1DMatrix(c3, N);
     printf("Sum: %d \n", sum);
     printf("Duration: %f \n", duration);
 

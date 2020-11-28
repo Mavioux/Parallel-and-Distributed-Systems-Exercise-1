@@ -14,8 +14,8 @@ triangle_v2: triangle_v2.c
 triangle_v3: mmio.o coo2csc.o triangle_v3.o 
 	$(CC) $(CFLAGS) -o triangle_v3 mmio.c coo2csc.c triangle_v3.c
 
-triangle_v3_cilk: mmio.o coo2csc.o 
-	$(CC) $(CFLAGS) -o triangle_v3_cilk mmio.c coo2csc.c triangle_v3_cilk.c -fcilkplus
+triangle_v3_cilk: mmio.o coo2csc.o triangle_v3_cilk.c
+	$(CC) $(CFLAGS) -o triangle_v3_cilk mmio.c coo2csc.c triangle_v3_cilk.c -fcilkplus -lm
 
 triangle_v3_openmp: mmio.o coo2csc.o triangle_v3_openmp.c
 	$(CC) $(CFLAGS) -o triangle_v3_openmp mmio.c coo2csc.c triangle_v3_openmp.c -fopenmp
