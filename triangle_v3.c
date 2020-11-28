@@ -20,6 +20,7 @@ int main(int argc, char *argv[])
     int *I, *J;
     double *val;
     int binary = atoi(argv[2]);
+    struct timeval start, end;
 
     if (argc < 2)
 	{
@@ -138,7 +139,7 @@ int main(int argc, char *argv[])
     printf("Matrix Loaded, now Searching!\n");
 
     /* We measure time from this point */
-    clock_t begin = clock();
+    gettimeofday(&start,NULL);
 
     int sum = 0;
     for(int i = 1; i < N; i++) {
@@ -180,8 +181,8 @@ int main(int argc, char *argv[])
     }
 
     /* We stop measuring time at this point */
-    clock_t end = clock();
-    double duration = (double)(end - begin) / CLOCKS_PER_SEC;
+    gettimeofday(&end,NULL);
+    double duration = (end.tv_sec+(double)end.tv_usec/1000000) - (start.tv_sec+(double)start.tv_usec/1000000);
 
     printf("Sum: %d \n", sum);
     printf("Duration: %f \n", duration);
