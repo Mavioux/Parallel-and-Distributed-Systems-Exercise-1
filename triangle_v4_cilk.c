@@ -4,6 +4,9 @@
 #include "mmio.h"
 #include "coo2csc.h"
 
+#include <cilk/cilk.h>
+#include <cilk/cilk_api.h>
+
 #define BILLION  1000000000L;
 
 void print1DMatrix(int* matrix, int size){
@@ -83,6 +86,11 @@ int main(int argc, char *argv[])
     uint32_t* cscRow = (uint32_t *) malloc(2 * nnz * sizeof(uint32_t));
     uint32_t* cscColumn = (uint32_t *) malloc((N + 1) * sizeof(uint32_t));
 
+    /* For the C CSC */
+    uint32_t* c_cscRow = (uint32_t *) malloc(0 * sizeof(uint32_t));
+    uint32_t* c_values = (uint32_t *) malloc(0 * sizeof(uint32_t));
+    uint32_t* c_cscColumn = (uint32_t *) malloc((N + 1) * sizeof(uint32_t));
+
     /* Depending on the second argument of the main call our original matrix may be binary or non binary so we read the file accordingly */
     switch (binary) 
     {
@@ -149,17 +157,6 @@ int main(int argc, char *argv[])
 
     printf("\nMatrix Loaded!\n");
 
-    /* For the B matrix in CSC format */
-    uint32_t* B_cscRow = (uint32_t *) malloc(0 * sizeof(uint32_t));
-    uint32_t* B_cscColumn = (uint32_t *) malloc((N + 1) * sizeof(uint32_t));
-    uint32_t* B_values = (uint32_t *) malloc(2 * nnz * sizeof(uint32_t));
-
-    /* For the D_CSC */
-    int d_nnz = 0;
-    uint32_t* d_cscRow = (uint32_t *) malloc(d_nnz * sizeof(uint32_t));
-    uint32_t* d_values = (uint32_t *) malloc(d_nnz * sizeof(uint32_t));
-    uint32_t* d_cscColumn = (uint32_t *) malloc((N + 1) * sizeof(uint32_t));
-
     /* Initialize c3 with zeros*/
     int* c3;
     c3 = malloc(N * sizeof c3);    
@@ -181,114 +178,70 @@ int main(int argc, char *argv[])
         result_vector[i] = 0;
     }
 
-    // printf("\nA Columns\n");
-    // for(int i = 0; i < N+1; i++) {
-    //     printf("%d ", cscColumn[i]);
-    // }
-
-
     /* We measure time from this point */
     if( clock_gettime( CLOCK_REALTIME, &start) == -1 ) {
       perror( "clock gettime" );
       exit( EXIT_FAILURE );
     }
 
-    /* B = A*A  */
+    int c_nnz = 0;
     int values_counter = 0;
-    B_cscColumn[0] = 0;
-    for(int i = 0; i < N; i++) {
-        int k_size = cscColumn[i+1] - cscColumn[i];
-        int* k;
-        k = (int *) malloc(k_size * sizeof(k));
-        for(int w = 0; w < k_size; w++) {
-            k[w] = cscRow[cscColumn[i] + w];
-        }
-        
-        for(int j = 0; j < N; j++) {
-            int flag = 0;
-            int value = 0;
-            int l_size = cscColumn[j+1] - cscColumn[j];
+    c_cscColumn[0] = 0;
+
+    // C = A.*(A*A)
+    cilk_for (int i = 0; i < N; i++) {
+        for(int j = 0; j < cscColumn[i+1] - cscColumn[i]; j++) {
+            int a_row = cscRow[cscColumn[i] + j];
+            int a_col = i;
+
+            // Element of (A*A)[i,j]
+            int k_size = cscColumn[a_row+1] - cscColumn[a_row];  
+            int l_size = cscColumn[a_col+1] - cscColumn[a_col];        
             int *l;
             l = malloc((k_size + l_size) * sizeof(int));
             /* Create the l vector with the appropriate values */
             for(int x = 0; x < k_size; x++) {
-                l[x] = k[x];
+                l[x] = cscRow[cscColumn[a_row] + x];;
             }
             for(int x = 0; x < l_size; x++) {
-                l[k_size + x] = cscRow[cscColumn[j] + x];
+                l[k_size + x] = cscRow[cscColumn[a_col] + x];
             }
 
             // We have in our hands the array l with the columns of the i-th row and the rows of the j-th column
             // We have to sort it and for each duplicate element -> c[i,j]++
             qsort( l, (k_size + l_size), sizeof(int), compare );
-            
-            // printf("k size: %d\n", cscColumn[i+1] - cscColumn[i]);
-            // printf("l size: %d\n", cscColumn[j+1] - cscColumn[j]);
+
+            int value = 0;
+
             for(int index = 0; index < (k_size + l_size - 1); index++) {
                 if(l[index] == l[index+1]) {
                     value++;
-                    flag = 1;
                     index++;
                 }
             }
             if(value) {
                 values_counter++;
-                B_cscRow = realloc(B_cscRow, values_counter * sizeof(int));
-                B_cscRow[values_counter - 1] = j;
-                B_values = realloc(B_values, values_counter * sizeof(int));
-                B_values[values_counter - 1] = value;
+                c_cscRow = realloc(c_cscRow, values_counter * sizeof(int));
+                c_cscRow[values_counter - 1] = a_row;
+                c_values = realloc(c_values, values_counter * sizeof(int));
+                c_values[values_counter - 1] = value;
             }
-            free(l);  
+            free(l);
         }
-        free(k);         
-        B_cscColumn[i+1] = values_counter;
+        c_cscColumn[i+1] = values_counter;
     }
-    B_cscColumn[N+1] = values_counter; /* This is not necessary */
-
-    d_cscColumn[0] = 0;
-
-    /* D = A (hadamard product) B; */
-    for(int i = 0; i < N; i++) {
-        for(int j = 0; j < cscColumn[i+1] - cscColumn[i]; j++) {
-            /* We loop through every element of the A matrix that has a value of 1 */
-            int a_row = cscRow[cscColumn[i] + j];
-            int a_col = i;
-
-            /* Now we got to check whether, at this specific row and column, the B matrix has an element.
-            If so we multiply these two values and store the result at the position i,j of the D matrix.
-            We loop through the whole (same) B column and search for a b_row that matches our a_row.
-            If such a row exists we search for its value (his value won't be zero).
-            Then we store it in the D matrix and do d_nnz++.
-            If such a value does not exist we store nothing. */
-
-            for(int k = 0; k < B_cscColumn[a_col+1] - B_cscColumn[a_col]; k++) {
-                int b_row = B_cscRow[B_cscColumn[a_col] + k];
-                if(b_row == a_row) {
-                    /* We found a non zero element at i,j.
-                       It will be stored in the same column as A and B matrix.
-                       Also we do d_nnz++ and we dynamically allocate more space to d_rows so as to store the row index of the new value
-                       We also dynamically allocate more space to d_values so as to to store the value */
-                       d_nnz++;
-                       d_cscRow = realloc( d_cscRow, sizeof(int) * d_nnz);
-                       d_values = realloc( d_values, sizeof(int) * d_nnz);
-                       d_cscRow[d_nnz-1] = a_row;
-                       d_values[d_nnz-1] = B_values[B_cscColumn[a_col] + k];
-                }
-            }
-        }
-        d_cscColumn[i+1] = d_nnz;
-    }
+    c_cscColumn[N+1] = values_counter;    
 
     /* Multiplication of a NxN matrix with a Nx1 vector
     We search the whole column (aka row since it is symmetric)
     Then every row that exists (aka column) has a specific
     So we add up the multiplication of each row element with the value of the*/
-    for(int i = 0; i < N; i++) {
+    cilk_for (int i = 0; i < N; i++) {
         // printf("i: %d \n", i);
-        for(int j = 0; j < d_cscColumn[i+1] - d_cscColumn[i]; j++) {
-            int row = d_cscRow[d_cscColumn[i] + j];
+        for(int j = 0; j < c_cscColumn[i+1] - c_cscColumn[i]; j++) {
+            int row = c_cscRow[c_cscColumn[i] + j];
             int col = i;
-            int value = d_values[d_cscColumn[i] + j];
+            int value = c_values[c_cscColumn[i] + j];
             // we now have the element (row, col) | its value is value[]
             // Because of its symmetry we also have the element (col, row)
             result_vector[row] += value * v[col]; /* res[row] += A[row, col] * v[col] */
@@ -296,7 +249,7 @@ int main(int argc, char *argv[])
         }
     }
     int triangle_sum = 0;
-    for(int i = 0; i < N; i++) {
+    cilk_for (int i = 0; i < N; i++) {
         c3[i] = result_vector[i] / 2;
         triangle_sum += c3[i];
     }
@@ -312,13 +265,16 @@ int main(int argc, char *argv[])
     // printf("\nc3 vector \n");
     // print1DMatrix(c3, N);
 
-    printf("\n");
-    for(int i = 5; i > -1; i--) {
-        printf("%d: %d\n",N-1-i, c3[N-1-i]);
-    }
+    // printf("\n");
+    // for(int i = 5; i > -1; i--) {
+    //     printf("%d: %d\n",N-1-i, c3[N-1-i]);
+    // }
+
+    // print1DMatrix(c3, N);
+    duration = (stop.tv_sec - start.tv_sec) + (stop.tv_nsec - start.tv_nsec) / BILLION;
 
     printf("\Triangle Sum: %d",  triangle_sum);
-    printf("\nDuration: %f",  duration);
+    printf("\nDuration: %f\n",  duration);
 
     /* Deallocate the arrays */
     free(I);

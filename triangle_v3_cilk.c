@@ -8,8 +8,6 @@
 #include <cilk/cilk.h>
 #include <cilk/cilk_api.h>
 
-#define BILLION  1000000000L;
-
 void print1DMatrix(int* matrix, int size){
     int i = 0;
     for(i = 0; i < size; i++){
@@ -25,10 +23,6 @@ int main(int argc, char *argv[])
     uint32_t M, N, nnz;   
     int *I, *J;
     double *val;
-
-    /* Initialize the timespec values and the duration value for the calculation of the computation time */
-    struct timespec start, stop;
-    double duration;
 
     if (argc < 2)
 	{
@@ -121,10 +115,7 @@ int main(int argc, char *argv[])
     printf("Matrix Loaded, now Searching!\n");
 
     /* We measure time from this point */
-    if( clock_gettime( CLOCK_REALTIME, &start) == -1 ) {
-      perror( "clock gettime" );
-      exit( EXIT_FAILURE );
-    }
+    clock_t begin = clock();
 
     int sum = 0;
     cilk_for (int i = 1; i < N; i++) {
@@ -167,12 +158,8 @@ int main(int argc, char *argv[])
     }
 
     /* We stop measuring time at this point */
-    if( clock_gettime( CLOCK_REALTIME, &stop) == -1 ) {
-      perror( "clock gettime" );
-      exit( EXIT_FAILURE );
-    }
-
-    duration = (stop.tv_sec - start.tv_sec) + (stop.tv_nsec - start.tv_nsec) / BILLION;
+    clock_t end = clock();
+    double duration = (double)(end - begin) / CLOCKS_PER_SEC;
 
 
     // print1DMatrix(c3, N);

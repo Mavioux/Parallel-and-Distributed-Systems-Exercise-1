@@ -24,10 +24,6 @@ void print1DMatrix(int* matrix, int size){
 
 int main(int argc, char* argv[]) {
 
-    /* Initialize the timespec values and the duration value for the calculation of the computation time */
-    struct timespec start, stop;
-    double duration;
-
     /* Get the number of Node from the command line arguments */
     int nodes = atoi(argv[1]);
 
@@ -73,10 +69,7 @@ int main(int argc, char* argv[]) {
     // print2DMatrix(adjacencyMatrix, nodes);
 
     /* We measure time from this point */
-    if( clock_gettime( CLOCK_REALTIME, &start) == -1 ) {
-      perror( "clock gettime" );
-      exit( EXIT_FAILURE );
-    }
+    clock_t begin = clock();
 
     /* Search for triangles */
     for(int i = 0; i < nodes; i++){
@@ -94,14 +87,10 @@ int main(int argc, char* argv[]) {
     }
 
     /* We stop measuring time at this point */
-    if( clock_gettime( CLOCK_REALTIME, &stop) == -1 ) {
-      perror( "clock gettime" );
-      exit( EXIT_FAILURE );
-    }
+    clock_t end = clock();
+    double duration = (double)(end - begin) / CLOCKS_PER_SEC;
 
     print1DMatrix(c3, nodes);
-
-    duration = (stop.tv_sec - start.tv_sec) + (stop.tv_nsec - start.tv_nsec) / BILLION;
 
     printf("Duration: %f \n", duration);
     

@@ -4,8 +4,6 @@
 #include "mmio.h"
 #include "coo2csc.h"
 
-#define BILLION  1000000000L;
-
 void print1DMatrix(int* matrix, int size){
     int i = 0;
     for(i = 0; i < size; i++){
@@ -176,10 +174,7 @@ int main(int argc, char *argv[])
     }
 
     /* We measure time from this point */
-    if( clock_gettime( CLOCK_REALTIME, &start) == -1 ) {
-      perror( "clock gettime" );
-      exit( EXIT_FAILURE );
-    }
+    clock_t begin = clock();
 
     int c_nnz = 0;
     int values_counter = 0;
@@ -259,16 +254,9 @@ int main(int argc, char *argv[])
       exit( EXIT_FAILURE );
     }
 
-    // printf("\nc3 vector \n");
-    // print1DMatrix(c3, N);
-
-    // printf("\n");
-    // for(int i = 5; i > -1; i--) {
-    //     printf("%d: %d\n",N-1-i, c3[N-1-i]);
-    // }
-
-    // print1DMatrix(c3, N);
-    duration = (stop.tv_sec - start.tv_sec) + (stop.tv_nsec - start.tv_nsec) / BILLION;
+    /* We stop measuring time at this point */
+    clock_t end = clock();
+    double duration = (double)(end - begin) / CLOCKS_PER_SEC;
 
     printf("\Triangle Sum: %d",  triangle_sum);
     printf("\nDuration: %f\n",  duration);
