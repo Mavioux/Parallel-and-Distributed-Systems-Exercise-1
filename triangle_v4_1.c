@@ -176,6 +176,8 @@ int main(int argc, char *argv[])
     int c_nnz = 0;
     int values_counter = 0;
     c_cscColumn[0] = 0;
+    c_cscRow = realloc(c_cscRow, 2 * nnz * sizeof(int));
+    c_values = realloc(c_cscRow, 2 * nnz * sizeof(int)); 
 
     // C = A.*(A*A)
     for(int i = 0; i < N; i++) {
@@ -185,41 +187,46 @@ int main(int argc, char *argv[])
 
             // Element of (A*A)[i,j]
             int k_size = cscColumn[a_row+1] - cscColumn[a_row];  
-            int l_size = cscColumn[a_col+1] - cscColumn[a_col];        
-            int *l;
-            l = malloc((k_size + l_size) * sizeof(int));
+            int l_size = cscColumn[a_col+1] - cscColumn[a_col];    
+            int *l = malloc((l_size) * sizeof(int));
+            int *k = malloc((k_size) * sizeof(int));
             /* Create the l vector with the appropriate values */
             for(int x = 0; x < k_size; x++) {
-                l[x] = cscRow[cscColumn[a_row] + x];;
+                k[x] = cscRow[cscColumn[a_row] + x];
             }
             for(int x = 0; x < l_size; x++) {
-                l[k_size + x] = cscRow[cscColumn[a_col] + x];
+                l[x] = cscRow[cscColumn[a_col] + x];
             }
 
-            // We have in our hands the array l with the columns of the i-th row and the rows of the j-th column
-            // We have to sort it and for each duplicate element -> c[i,j]++
-            qsort( l, (k_size + l_size), sizeof(int), compare );
-
+            int k_pointer = 0;
+            int l_pointer = 0;
             int value = 0;
 
-            for(int index = 0; index < (k_size + l_size - 1); index++) {
-                if(l[index] == l[index+1]) {
+            while(k_pointer != k_size && l_pointer != l_size) {
+                if(k[k_pointer] == l[l_pointer]) {
                     value++;
-                    index++;
+                    k_pointer++;
+                    l_pointer++;
                 }
-            }
+                else if(k[k_pointer] > l[l_pointer]) {
+                    l_pointer++;
+                }
+                else
+                {
+                    k_pointer++;
+                }                
+            }        
+
             if(value) {
-                values_counter++;
-                c_cscRow = realloc(c_cscRow, values_counter * sizeof(int));
-                c_cscRow[values_counter - 1] = a_row;
-                c_values = realloc(c_values, values_counter * sizeof(int));
-                c_values[values_counter - 1] = value;
+                c_values[cscColumn[i] + j] = value;
             }
             free(l);
+            free(k);
         }
-        c_cscColumn[i+1] = values_counter;
     }
-    c_cscColumn[N+1] = values_counter;    
+    /* That is true because C has the same elements with A. The only thing that can change is that it will not be binary anymore but will have positive (Important: NON ZERO) values which we store */
+    c_cscColumn = cscColumn;
+    c_cscRow = cscRow;
 
     /* Multiplication of a NxN matrix with a Nx1 vector
     We search the whole column (aka row since it is symmetric)
