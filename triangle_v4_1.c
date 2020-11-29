@@ -30,6 +30,7 @@ int main(int argc, char *argv[])
     int *I, *J;
     double *val;
     int binary = atoi(argv[2]);
+    struct timeval start, end;
 
     if (argc < 2)
 	{
@@ -170,7 +171,7 @@ int main(int argc, char *argv[])
     }
 
     /* We measure time from this point */
-    clock_t begin = clock();
+    gettimeofday(&start,NULL);
 
     int c_nnz = 0;
     int values_counter = 0;
@@ -245,10 +246,10 @@ int main(int argc, char *argv[])
     triangle_sum = triangle_sum / 3;
 
     /* We stop measuring time at this point */
-    clock_t end = clock();
-    double duration = (double)(end - begin) / CLOCKS_PER_SEC;
+    gettimeofday(&end,NULL);
+    double duration = (end.tv_sec+(double)end.tv_usec/1000000) - (start.tv_sec+(double)start.tv_usec/1000000);
 
-    printf("\Triangle Sum: %d",  triangle_sum);
+    printf("\nTriangle Sum: %d",  triangle_sum);
     printf("\nDuration: %f\n",  duration);
 
     /* Deallocate the arrays */
