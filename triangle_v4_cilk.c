@@ -192,50 +192,51 @@ int main(int argc, char *argv[])
     int numWorkers = __cilkrts_get_nworkers();
     printf("There are %d workers.\n",numWorkers);
 
-    int workerNum = __cilkrts_get_worker_number();
-    printf("The current worker number is %d. That's because we are running serially.\n",workerNum);
-
-    int totalWorkers = __cilkrts_get_total_workers();
-    printf("The total number of threads assigned to the RTS is %d.\n",totalWorkers);
-
     // C = A.*(A*A)   
-    for(int i = 0; i < N; i++) {
-        for(int j = 0; j < cscColumn[i+1] - cscColumn[i]; j++) {
+    cilk_for(int i = 0; i < N; i++) {
+       for(int j = 0; j < cscColumn[i+1] - cscColumn[i]; j++) {
             int a_row = cscRow[cscColumn[i] + j];
             int a_col = i;
 
             // Element of (A*A)[i,j]
             int k_size = cscColumn[a_row+1] - cscColumn[a_row];  
-            int l_size = cscColumn[a_col+1] - cscColumn[a_col];
-            int *l;
-            l = malloc((k_size + l_size) * sizeof(int));
+            int l_size = cscColumn[a_col+1] - cscColumn[a_col];    
+            int *l = malloc((l_size) * sizeof(int));
+            int *k = malloc((k_size) * sizeof(int));
             /* Create the l vector with the appropriate values */
             for(int x = 0; x < k_size; x++) {
-                l[x] = cscRow[cscColumn[a_row] + x];;
+                k[x] = cscRow[cscColumn[a_row] + x];
             }
             for(int x = 0; x < l_size; x++) {
-                l[k_size + x] = cscRow[cscColumn[a_col] + x];
+                l[x] = cscRow[cscColumn[a_col] + x];
             }
 
-            // We have in our hands the array l with the columns of the i-th row and the rows of the j-th column
-            // We have to sort it and for each duplicate element -> c[i,j]++
-            qsort( l, (k_size + l_size), sizeof(int), compare );
-
+            int k_pointer = 0;
+            int l_pointer = 0;
             int value = 0;
 
-            for(int index = 0; index < (k_size + l_size - 1); index++) {
-                if(l[index] == l[index+1]) {
+            while(k_pointer != k_size && l_pointer != l_size) {
+                if(k[k_pointer] == l[l_pointer]) {
                     value++;
-                    index++;
+                    k_pointer++;
+                    l_pointer++;
                 }
-            }
+                else if(k[k_pointer] > l[l_pointer]) {
+                    l_pointer++;
+                }
+                else
+                {
+                    k_pointer++;
+                }                
+            }        
+
             if(value) {
                 c_values[cscColumn[i] + j] = value;
             }
             free(l);
+            free(k);
         }
-    }   
-
+    }
     c_cscRow = cscRow;
     c_cscColumn = cscColumn;
 
@@ -244,14 +245,16 @@ int main(int argc, char *argv[])
     Then every row that exists (aka column) has a specific
     So we add up the multiplication of each row element with the value of the*/
     // not worth parallelizing here
-    for(int i = 0; i < N; i++) {
+    cilk_for(int i = 0; i < N; i++) {
         for(int j = 0; j < c_cscColumn[i+1] - c_cscColumn[i]; j++) {
             int row = c_cscRow[c_cscColumn[i] + j];
             int col = i;
             int value = c_values[c_cscColumn[i] + j];
             // we now have the element (row, col) | its value is value[]
             // Because of its symmetry we also have the element (col, row)
+            pthread_mutex_lock(&mutex);
             result_vector[row] += value * v[col]; /* res[row] += A[row, col] * v[col] */
+            pthread_mutex_unlock(&mutex);
             // result_vector[col] += value * v[row]; /* res[col] += A[row, col] * v[row] */
         }
     }

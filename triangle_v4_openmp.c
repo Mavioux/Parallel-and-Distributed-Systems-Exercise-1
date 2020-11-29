@@ -196,35 +196,43 @@ int main(int argc, char *argv[])
 
             // Element of (A*A)[i,j]
             int k_size = cscColumn[a_row+1] - cscColumn[a_row];  
-            int l_size = cscColumn[a_col+1] - cscColumn[a_col];
-            l = malloc((k_size + l_size) * sizeof(int));
+            int l_size = cscColumn[a_col+1] - cscColumn[a_col];    
+            int *l = malloc((l_size) * sizeof(int));
+            int *k = malloc((k_size) * sizeof(int));
             /* Create the l vector with the appropriate values */
             for(int x = 0; x < k_size; x++) {
-                l[x] = cscRow[cscColumn[a_row] + x];;
+                k[x] = cscRow[cscColumn[a_row] + x];
             }
             for(int x = 0; x < l_size; x++) {
-                l[k_size + x] = cscRow[cscColumn[a_col] + x];
+                l[x] = cscRow[cscColumn[a_col] + x];
             }
 
-            // We have in our hands the array l with the columns of the i-th row and the rows of the j-th column
-            // We have to sort it and for each duplicate element -> c[i,j]++
-            qsort( l, (k_size + l_size), sizeof(int), compare );
-
+            int k_pointer = 0;
+            int l_pointer = 0;
             int value = 0;
 
-            for(int index = 0; index < (k_size + l_size - 1); index++) {
-                if(l[index] == l[index+1]) {
+            while(k_pointer != k_size && l_pointer != l_size) {
+                if(k[k_pointer] == l[l_pointer]) {
                     value++;
-                    index++;
+                    k_pointer++;
+                    l_pointer++;
                 }
-            }
+                else if(k[k_pointer] > l[l_pointer]) {
+                    l_pointer++;
+                }
+                else
+                {
+                    k_pointer++;
+                }                
+            }        
+
             if(value) {
                 c_values[cscColumn[i] + j] = value;
             }
             free(l);
+            free(k);
         }
-    }   
-
+    }
     c_cscRow = cscRow;
     c_cscColumn = cscColumn;
 
