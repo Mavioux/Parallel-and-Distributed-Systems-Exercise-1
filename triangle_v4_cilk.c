@@ -35,6 +35,7 @@ int main(int argc, char *argv[])
     double *val;
     int binary = atoi(argv[2]);
     int num_of_threads = atoi(argv[3]);
+    char* string_num_of_threads = argv[3];
     struct timeval start, end;
 
     if (argc < 2)
@@ -47,10 +48,6 @@ int main(int argc, char *argv[])
         if ((f = fopen(argv[1], "r")) == NULL) 
             exit(1);
     }
-
-    __cilkrts_set_param("nworkers",string_num_of_threads);
-    int numWorkers = __cilkrts_get_nworkers();
-    printf("There are %d workers.\n",numWorkers);
 
     if (mm_read_banner(f, &matcode) != 0)
     {
@@ -184,11 +181,22 @@ int main(int argc, char *argv[])
 
     int c_nnz = 0;
     c_cscColumn[0] = 0;
-
     
-    int *l;
     c_cscRow = realloc(c_cscRow, 2 * nnz * sizeof(int));
     c_values = realloc(c_cscRow, 2 * nnz * sizeof(int)); 
+
+    pthread_mutex_t mutex; //define the lock
+    pthread_mutex_init(&mutex,NULL); //initialize the lock
+
+    __cilkrts_set_param("nworkers",string_num_of_threads);
+    int numWorkers = __cilkrts_get_nworkers();
+    printf("There are %d workers.\n",numWorkers);
+
+    int workerNum = __cilkrts_get_worker_number();
+    printf("The current worker number is %d. That's because we are running serially.\n",workerNum);
+
+    int totalWorkers = __cilkrts_get_total_workers();
+    printf("The total number of threads assigned to the RTS is %d.\n",totalWorkers);
 
     // C = A.*(A*A)   
     for(int i = 0; i < N; i++) {
@@ -199,6 +207,7 @@ int main(int argc, char *argv[])
             // Element of (A*A)[i,j]
             int k_size = cscColumn[a_row+1] - cscColumn[a_row];  
             int l_size = cscColumn[a_col+1] - cscColumn[a_col];
+            int *l;
             l = malloc((k_size + l_size) * sizeof(int));
             /* Create the l vector with the appropriate values */
             for(int x = 0; x < k_size; x++) {
