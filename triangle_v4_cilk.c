@@ -5,9 +5,8 @@
 #include "coo2csc.h"
 
 #include <cilk/cilk.h>
+#include <pthread.h>
 #include <cilk/cilk_api.h>
-
-#define BILLION  1000000000L;
 
 void print1DMatrix(int* matrix, int size){
     int i = 0;
@@ -35,10 +34,8 @@ int main(int argc, char *argv[])
     int *I, *J;
     double *val;
     int binary = atoi(argv[2]);
-
-    /* Initialize the timespec values and the duration value for the calculation of the computation time */
-    struct timespec start, stop;
-    double duration;
+    int num_of_threads = atoi(argv[3]);
+    struct timeval start, end;
 
     if (argc < 2)
 	{
@@ -50,6 +47,10 @@ int main(int argc, char *argv[])
         if ((f = fopen(argv[1], "r")) == NULL) 
             exit(1);
     }
+
+    __cilkrts_set_param("nworkers",string_num_of_threads);
+    int numWorkers = __cilkrts_get_nworkers();
+    printf("There are %d workers.\n",numWorkers);
 
     if (mm_read_banner(f, &matcode) != 0)
     {
@@ -179,25 +180,25 @@ int main(int argc, char *argv[])
     }
 
     /* We measure time from this point */
-    if( clock_gettime( CLOCK_REALTIME, &start) == -1 ) {
-      perror( "clock gettime" );
-      exit( EXIT_FAILURE );
-    }
+    gettimeofday(&start,NULL);
 
     int c_nnz = 0;
-    int values_counter = 0;
     c_cscColumn[0] = 0;
 
-    // C = A.*(A*A)
-    cilk_for (int i = 0; i < N; i++) {
+    
+    int *l;
+    c_cscRow = realloc(c_cscRow, 2 * nnz * sizeof(int));
+    c_values = realloc(c_cscRow, 2 * nnz * sizeof(int)); 
+
+    // C = A.*(A*A)   
+    for(int i = 0; i < N; i++) {
         for(int j = 0; j < cscColumn[i+1] - cscColumn[i]; j++) {
             int a_row = cscRow[cscColumn[i] + j];
             int a_col = i;
 
             // Element of (A*A)[i,j]
             int k_size = cscColumn[a_row+1] - cscColumn[a_row];  
-            int l_size = cscColumn[a_col+1] - cscColumn[a_col];        
-            int *l;
+            int l_size = cscColumn[a_col+1] - cscColumn[a_col];
             l = malloc((k_size + l_size) * sizeof(int));
             /* Create the l vector with the appropriate values */
             for(int x = 0; x < k_size; x++) {
@@ -220,24 +221,21 @@ int main(int argc, char *argv[])
                 }
             }
             if(value) {
-                values_counter++;
-                c_cscRow = realloc(c_cscRow, values_counter * sizeof(int));
-                c_cscRow[values_counter - 1] = a_row;
-                c_values = realloc(c_values, values_counter * sizeof(int));
-                c_values[values_counter - 1] = value;
+                c_values[cscColumn[i] + j] = value;
             }
             free(l);
         }
-        c_cscColumn[i+1] = values_counter;
-    }
-    c_cscColumn[N+1] = values_counter;    
+    }   
+
+    c_cscRow = cscRow;
+    c_cscColumn = cscColumn;
 
     /* Multiplication of a NxN matrix with a Nx1 vector
     We search the whole column (aka row since it is symmetric)
     Then every row that exists (aka column) has a specific
     So we add up the multiplication of each row element with the value of the*/
-    cilk_for (int i = 0; i < N; i++) {
-        // printf("i: %d \n", i);
+    // not worth parallelizing here
+    for(int i = 0; i < N; i++) {
         for(int j = 0; j < c_cscColumn[i+1] - c_cscColumn[i]; j++) {
             int row = c_cscRow[c_cscColumn[i] + j];
             int col = i;
@@ -249,7 +247,7 @@ int main(int argc, char *argv[])
         }
     }
     int triangle_sum = 0;
-    cilk_for (int i = 0; i < N; i++) {
+    for(int i = 0; i < N; i++) {
         c3[i] = result_vector[i] / 2;
         triangle_sum += c3[i];
     }
@@ -257,23 +255,10 @@ int main(int argc, char *argv[])
     triangle_sum = triangle_sum / 3;
 
     /* We stop measuring time at this point */
-    if( clock_gettime( CLOCK_REALTIME, &stop) == -1 ) {
-      perror( "clock gettime" );
-      exit( EXIT_FAILURE );
-    }
+    gettimeofday(&end,NULL);
+    double duration = (end.tv_sec+(double)end.tv_usec/1000000) - (start.tv_sec+(double)start.tv_usec/1000000);
 
-    // printf("\nc3 vector \n");
-    // print1DMatrix(c3, N);
-
-    // printf("\n");
-    // for(int i = 5; i > -1; i--) {
-    //     printf("%d: %d\n",N-1-i, c3[N-1-i]);
-    // }
-
-    // print1DMatrix(c3, N);
-    duration = (stop.tv_sec - start.tv_sec) + (stop.tv_nsec - start.tv_nsec) / BILLION;
-
-    printf("\Triangle Sum: %d",  triangle_sum);
+    printf("\nTriangle Sum: %d",  triangle_sum);
     printf("\nDuration: %f\n",  duration);
 
     /* Deallocate the arrays */
