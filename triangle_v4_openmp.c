@@ -4,7 +4,7 @@
 #include "mmio.h"
 #include "coo2csc.h"
 
-#define BILLION  1000000000L;
+#include <omp.h>
 
 void print1DMatrix(int* matrix, int size){
     int i = 0;
@@ -32,10 +32,8 @@ int main(int argc, char *argv[])
     int *I, *J;
     double *val;
     int binary = atoi(argv[2]);
-
-    /* Initialize the timespec values and the duration value for the calculation of the computation time */
-    struct timespec start, stop;
-    double duration;
+    int num_of_threads = atoi(argv[3]);
+    struct timeval start, end;
 
     if (argc < 2)
 	{
@@ -176,16 +174,21 @@ int main(int argc, char *argv[])
     }
 
     /* We measure time from this point */
-    if( clock_gettime( CLOCK_REALTIME, &start) == -1 ) {
-      perror( "clock gettime" );
-      exit( EXIT_FAILURE );
-    }
+    gettimeofday(&start,NULL);
 
     int c_nnz = 0;
-    int values_counter = 0;
     c_cscColumn[0] = 0;
 
+    
+    int *l;
+    c_cscRow = realloc(c_cscRow, 2 * nnz * sizeof(int));
+    c_values = realloc(c_cscRow, 2 * nnz * sizeof(int)); 
+
     // C = A.*(A*A)
+    omp_set_dynamic(0);     // Explicitly disable dynamic teams
+    omp_set_num_threads(num_of_threads); // Use num_of_threads threads for all consecutive parallel regions
+    
+    #pragma omp parallel for private(l)
     for(int i = 0; i < N; i++) {
         for(int j = 0; j < cscColumn[i+1] - cscColumn[i]; j++) {
             int a_row = cscRow[cscColumn[i] + j];
@@ -193,8 +196,7 @@ int main(int argc, char *argv[])
 
             // Element of (A*A)[i,j]
             int k_size = cscColumn[a_row+1] - cscColumn[a_row];  
-            int l_size = cscColumn[a_col+1] - cscColumn[a_col];        
-            int *l;
+            int l_size = cscColumn[a_col+1] - cscColumn[a_col];
             l = malloc((k_size + l_size) * sizeof(int));
             /* Create the l vector with the appropriate values */
             for(int x = 0; x < k_size; x++) {
@@ -209,38 +211,37 @@ int main(int argc, char *argv[])
             qsort( l, (k_size + l_size), sizeof(int), compare );
 
             int value = 0;
-            
+
             for(int index = 0; index < (k_size + l_size - 1); index++) {
                 if(l[index] == l[index+1]) {
                     value++;
-                    // index++;
+                    index++;
                 }
             }
             if(value) {
-                values_counter++;
-                c_cscRow = realloc(c_cscRow, values_counter * sizeof(int));
-                c_cscRow[values_counter - 1] = a_row;
-                c_values = realloc(c_values, values_counter * sizeof(int));
-                c_values[values_counter - 1] = value;
+                c_values[cscColumn[i] + j] = value;
             }
             free(l);
         }
-        c_cscColumn[i+1] = values_counter;
-    }
-    c_cscColumn[N+1] = values_counter;    
+    }   
+
+    c_cscRow = cscRow;
+    c_cscColumn = cscColumn;
 
     /* Multiplication of a NxN matrix with a Nx1 vector
     We search the whole column (aka row since it is symmetric)
     Then every row that exists (aka column) has a specific
     So we add up the multiplication of each row element with the value of the*/
+    #pragma omp parallel for shared(result_vector)
+    // not worth parallelizing here
     for(int i = 0; i < N; i++) {
-        // printf("i: %d \n", i);
         for(int j = 0; j < c_cscColumn[i+1] - c_cscColumn[i]; j++) {
             int row = c_cscRow[c_cscColumn[i] + j];
             int col = i;
             int value = c_values[c_cscColumn[i] + j];
             // we now have the element (row, col) | its value is value[]
             // Because of its symmetry we also have the element (col, row)
+            #pragma omp critical
             result_vector[row] += value * v[col]; /* res[row] += A[row, col] * v[col] */
             // result_vector[col] += value * v[row]; /* res[col] += A[row, col] * v[row] */
         }
@@ -254,23 +255,10 @@ int main(int argc, char *argv[])
     triangle_sum = triangle_sum / 3;
 
     /* We stop measuring time at this point */
-    if( clock_gettime( CLOCK_REALTIME, &stop) == -1 ) {
-      perror( "clock gettime" );
-      exit( EXIT_FAILURE );
-    }
+    gettimeofday(&end,NULL);
+    double duration = (end.tv_sec+(double)end.tv_usec/1000000) - (start.tv_sec+(double)start.tv_usec/1000000);
 
-    // printf("\nc3 vector \n");
-    // print1DMatrix(c3, N);
-
-    // printf("\n");
-    // for(int i = 5; i > -1; i--) {
-    //     printf("%d: %d\n",N-1-i, c3[N-1-i]);
-    // }
-
-    // print1DMatrix(c3, N);
-    duration = (stop.tv_sec - start.tv_sec) + (stop.tv_nsec - start.tv_nsec) / BILLION;
-
-    printf("\Triangle Sum: %d",  triangle_sum);
+    printf("\nTriangle Sum: %d",  triangle_sum);
     printf("\nDuration: %f\n",  duration);
 
     /* Deallocate the arrays */
