@@ -184,7 +184,7 @@ int main(int argc, char *argv[])
 
     // C = A.*(A*A)   
     cilk_for(int i = 0; i < N; i++) {
-       for(int j = 0; j < cscColumn[i+1] - cscColumn[i]; j++) {
+       cilk_for(int j = 0; j < cscColumn[i+1] - cscColumn[i]; j++) {
             int a_row = cscRow[cscColumn[i] + j];
             int a_col = i;
 
@@ -235,19 +235,21 @@ int main(int argc, char *argv[])
     Then every row that exists (-> column) has a specific value
     So we add up the multiplication of each row element with the value */
     /* Not worth parallelizing here */
-    cilk_for(int i = 0; i < N; i++) {
+    /* Because it requires mutex when writing the result_vector[row] */
+    for(int i = 0; i < N; i++) {
         for(int j = 0; j < c_cscColumn[i+1] - c_cscColumn[i]; j++) {
             int row = c_cscRow[c_cscColumn[i] + j];
             int col = i;
             int value = c_values[c_cscColumn[i] + j];
             /* we now have the element (row, col) | its value is value[] */
             /* Because of its symmetry we also have the element (col, row) */
-            pthread_mutex_lock(&mutex);
+            // pthread_mutex_lock(&mutex);
             result_vector[row] += value * v[col]; /* res[row] += A[row, col] * v[col] */
-            pthread_mutex_unlock(&mutex);
+            // pthread_mutex_unlock(&mutex);
         }
     }
     int triangle_sum = 0;
+    /* No real benefit parallelizing this either */
     for(int i = 0; i < N; i++) {
         c3[i] = result_vector[i] / 2;
         triangle_sum += c3[i];

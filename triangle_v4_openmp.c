@@ -177,6 +177,7 @@ int main(int argc, char *argv[])
     
     #pragma omp parallel for private(l)
     for(int i = 0; i < N; i++) {
+        /* Parallelizing here yields worse results */
         for(int j = 0; j < cscColumn[i+1] - cscColumn[i]; j++) {
             int a_row = cscRow[cscColumn[i] + j];
             int a_col = i;
@@ -187,6 +188,7 @@ int main(int argc, char *argv[])
             int *l = malloc((l_size) * sizeof(int));
             int *k = malloc((k_size) * sizeof(int));
             /* Create the l vector with the appropriate values */
+            /* Potentially I could assign the values to the array in parallel */
             for(int x = 0; x < k_size; x++) {
                 k[x] = cscRow[cscColumn[a_row] + x];
             }
@@ -227,7 +229,6 @@ int main(int argc, char *argv[])
     We search the whole column (aka row since it is symmetric)
     Then every row that exists (aka column) has a specific
     So we add up the multiplication of each row element with the value of the*/
-    #pragma omp parallel for shared(result_vector)
     // not worth parallelizing here
     for(int i = 0; i < N; i++) {
         for(int j = 0; j < c_cscColumn[i+1] - c_cscColumn[i]; j++) {
