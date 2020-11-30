@@ -11,16 +11,6 @@ void print1DMatrix(int* matrix, int size){
     }
 }
 
-int compare( const void* a, const void* b)
-{
-     int int_a = * ( (int*) a );
-     int int_b = * ( (int*) b );
-
-     if ( int_a == int_b ) return 0;
-     else if ( int_a < int_b ) return -1;
-     else return 1;
-}
-
 int main(int argc, char *argv[])
 {
     int ret_code;
@@ -173,8 +163,6 @@ int main(int argc, char *argv[])
     /* We measure time from this point */
     gettimeofday(&start,NULL);
 
-    int c_nnz = 0;
-    int values_counter = 0;
     c_cscColumn[0] = 0;
     c_cscRow = realloc(c_cscRow, 2 * nnz * sizeof(int));
     c_values = realloc(c_cscRow, 2 * nnz * sizeof(int)); 
@@ -230,8 +218,8 @@ int main(int argc, char *argv[])
 
     /* Multiplication of a NxN matrix with a Nx1 vector
     We search the whole column (aka row since it is symmetric)
-    Then every row that exists (aka column) has a specific
-    So we add up the multiplication of each row element with the value of the*/
+    Then every row that exists (aka column) has a specific value
+    So we add up the multiplication of each row element with the value*/
     for(int i = 0; i < N; i++) {
         // printf("i: %d \n", i);
         for(int j = 0; j < c_cscColumn[i+1] - c_cscColumn[i]; j++) {
@@ -241,7 +229,6 @@ int main(int argc, char *argv[])
             // we now have the element (row, col) | its value is value[]
             // Because of its symmetry we also have the element (col, row)
             result_vector[row] += value * v[col]; /* res[row] += A[row, col] * v[col] */
-            // result_vector[col] += value * v[row]; /* res[col] += A[row, col] * v[row] */
         }
     }
     int triangle_sum = 0;

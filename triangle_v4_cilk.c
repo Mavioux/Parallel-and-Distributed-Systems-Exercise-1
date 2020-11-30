@@ -15,16 +15,6 @@ void print1DMatrix(int* matrix, int size){
     }
 }
 
-int compare( const void* a, const void* b)
-{
-     int int_a = * ( (int*) a );
-     int int_b = * ( (int*) b );
-
-     if ( int_a == int_b ) return 0;
-     else if ( int_a < int_b ) return -1;
-     else return 1;
-}
-
 int main(int argc, char *argv[])
 {
     int ret_code;
@@ -40,7 +30,7 @@ int main(int argc, char *argv[])
 
     if (argc < 2)
 	{
-		fprintf(stderr, "Usage: %s [martix-market-filename] [0 for binary or 1 for non binary]\n", argv[0]);
+		fprintf(stderr, "Usage: %s [martix-market-filename] [0 for binary or 1 for non binary] [num of threads]\n", argv[0]);
 		exit(1);
 	}
     else    
@@ -58,7 +48,6 @@ int main(int argc, char *argv[])
 
     /*  This is how one can screen matrix types if their application */
     /*  only supports a subset of the Matrix Market data types.      */
-
     if (mm_is_complex(matcode) && mm_is_matrix(matcode) && 
             mm_is_sparse(matcode) )
     {
@@ -68,12 +57,12 @@ int main(int argc, char *argv[])
     }
 
     /* find out size of sparse matrix .... */
-
     if ((ret_code = mm_read_mtx_crd_size(f, &M, &N, &nnz)) !=0)
         exit(1);
 
 
-    /* reseve memory for matrices */
+    /* Reseve memory for matrices */
+
     /* For the COO */
     /* Double the memory to store the full matrix */
     I = (uint32_t *) malloc(2 * nnz * sizeof(uint32_t));
@@ -120,6 +109,7 @@ int main(int argc, char *argv[])
         break;
     }
     
+    /* Stop reading coo file */
     if (f !=stdin) fclose(f);
 
     if(M != N) {
@@ -179,15 +169,15 @@ int main(int argc, char *argv[])
     /* We measure time from this point */
     gettimeofday(&start,NULL);
 
-    int c_nnz = 0;
-    c_cscColumn[0] = 0;
-    
+    /* Initialization and memory allocation of C matrix */
+    c_cscColumn[0] = 0;    
     c_cscRow = realloc(c_cscRow, 2 * nnz * sizeof(int));
     c_values = realloc(c_cscRow, 2 * nnz * sizeof(int)); 
 
     pthread_mutex_t mutex; //define the lock
     pthread_mutex_init(&mutex,NULL); //initialize the lock
 
+    /* Cilk set number of workers */
     __cilkrts_set_param("nworkers",string_num_of_threads);
     int numWorkers = __cilkrts_get_nworkers();
     printf("There are %d workers.\n",numWorkers);
@@ -203,7 +193,7 @@ int main(int argc, char *argv[])
             int l_size = cscColumn[a_col+1] - cscColumn[a_col];    
             int *l = malloc((l_size) * sizeof(int));
             int *k = malloc((k_size) * sizeof(int));
-            /* Create the l vector with the appropriate values */
+            /* Create the l and k vectors with the appropriate values */
             for(int x = 0; x < k_size; x++) {
                 k[x] = cscRow[cscColumn[a_row] + x];
             }
@@ -211,10 +201,10 @@ int main(int argc, char *argv[])
                 l[x] = cscRow[cscColumn[a_col] + x];
             }
 
+            /* Compare k and l elements */
             int k_pointer = 0;
             int l_pointer = 0;
             int value = 0;
-
             while(k_pointer != k_size && l_pointer != l_size) {
                 if(k[k_pointer] == l[l_pointer]) {
                     value++;
@@ -229,7 +219,6 @@ int main(int argc, char *argv[])
                     k_pointer++;
                 }                
             }        
-
             if(value) {
                 c_values[cscColumn[i] + j] = value;
             }
@@ -237,25 +226,25 @@ int main(int argc, char *argv[])
             free(k);
         }
     }
+    /* Since no value can be zero other than the original ones, we can safely assume that row and column arrays of C matrix will have the identical elements with A matrix */
     c_cscRow = cscRow;
     c_cscColumn = cscColumn;
 
     /* Multiplication of a NxN matrix with a Nx1 vector
-    We search the whole column (aka row since it is symmetric)
-    Then every row that exists (aka column) has a specific
-    So we add up the multiplication of each row element with the value of the*/
-    // not worth parallelizing here
+    We search the whole column (-> row since it is symmetric)
+    Then every row that exists (-> column) has a specific value
+    So we add up the multiplication of each row element with the value */
+    /* Not worth parallelizing here */
     cilk_for(int i = 0; i < N; i++) {
         for(int j = 0; j < c_cscColumn[i+1] - c_cscColumn[i]; j++) {
             int row = c_cscRow[c_cscColumn[i] + j];
             int col = i;
             int value = c_values[c_cscColumn[i] + j];
-            // we now have the element (row, col) | its value is value[]
-            // Because of its symmetry we also have the element (col, row)
+            /* we now have the element (row, col) | its value is value[] */
+            /* Because of its symmetry we also have the element (col, row) */
             pthread_mutex_lock(&mutex);
             result_vector[row] += value * v[col]; /* res[row] += A[row, col] * v[col] */
             pthread_mutex_unlock(&mutex);
-            // result_vector[col] += value * v[row]; /* res[col] += A[row, col] * v[row] */
         }
     }
     int triangle_sum = 0;
@@ -276,6 +265,8 @@ int main(int argc, char *argv[])
     /* Deallocate the arrays */
     free(I);
     free(J);
+    free(c_cscRow);
+    free(c_cscColumn);
     free(c3);
     free(v);
     free(result_vector);

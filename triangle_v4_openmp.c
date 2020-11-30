@@ -13,16 +13,6 @@ void print1DMatrix(int* matrix, int size){
     }
 }
 
-int compare( const void* a, const void* b)
-{
-     int int_a = * ( (int*) a );
-     int int_b = * ( (int*) b );
-
-     if ( int_a == int_b ) return 0;
-     else if ( int_a < int_b ) return -1;
-     else return 1;
-}
-
 int main(int argc, char *argv[])
 {
     int ret_code;
@@ -37,7 +27,7 @@ int main(int argc, char *argv[])
 
     if (argc < 2)
 	{
-		fprintf(stderr, "Usage: %s [martix-market-filename] [0 for binary or 1 for non binary]\n", argv[0]);
+		fprintf(stderr, "Usage: %s [martix-market-filename] [0 for binary or 1 for non binary] [num of threads]\n", argv[0]);
 		exit(1);
 	}
     else    
@@ -175,11 +165,8 @@ int main(int argc, char *argv[])
 
     /* We measure time from this point */
     gettimeofday(&start,NULL);
-
-    int c_nnz = 0;
-    c_cscColumn[0] = 0;
-
     
+    c_cscColumn[0] = 0;   
     int *l;
     c_cscRow = realloc(c_cscRow, 2 * nnz * sizeof(int));
     c_values = realloc(c_cscRow, 2 * nnz * sizeof(int)); 
