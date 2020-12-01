@@ -33,7 +33,7 @@ int main(int argc, char *argv[])
 
     if (argc < 2)
 	{
-		fprintf(stderr, "Usage: %s [martix-market-filename] [0 for non binary 1 for binary matrix]\n", argv[0]);
+		fprintf(stderr, "Usage: %s [martix-market-filename] [0 for non binary 1 for binary matrix] [num of threads]\n", argv[0]);
 		exit(1);
 	}
     else    
@@ -154,8 +154,6 @@ int main(int argc, char *argv[])
 
     /* We measure time from this point */
     gettimeofday(&start,NULL);
-
-    int gs = fmin(2048, N / (8*num_of_threads)); //grainsize
 
     int sum = 0;
     cilk_for(int i = 1; i < N; i++) {
