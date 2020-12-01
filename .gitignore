@@ -38,3 +38,4 @@ triangle_v4_1.o
 triangle_v4_cilk
 triangle_v4_openmp
 log
+triangle_v4_pthreads
