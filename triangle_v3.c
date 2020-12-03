@@ -141,6 +141,8 @@ int main(int argc, char *argv[])
     /* We measure time from this point */
     gettimeofday(&start,NULL);
 
+    /* ALGORITHM STARTS HERE */
+
     int sum = 0;
     for(int i = 1; i < N; i++) {
         for(int j = 0; j < cscColumn[i+1] - cscColumn[i]; j++) {
@@ -179,6 +181,8 @@ int main(int argc, char *argv[])
             }
         }
     }
+
+    /* ALGORITHM ENDS HERE */
 
     /* We stop measuring time at this point */
     gettimeofday(&end,NULL);

@@ -160,12 +160,14 @@ int main(int argc, char *argv[])
         result_vector[i] = 0;
     }
 
-    /* We measure time from this point */
-    gettimeofday(&start,NULL);
-
     c_cscColumn[0] = 0;
     c_cscRow = realloc(c_cscRow, 2 * nnz * sizeof(int));
-    c_values = realloc(c_cscRow, 2 * nnz * sizeof(int)); 
+    c_values = realloc(c_values, 2 * nnz * sizeof(int)); 
+
+    /* We measure time from this point */
+    gettimeofday(&start,NULL);   
+
+    /* ALGORITHM STARTS HERE */
 
     // C = A.*(A*A)
     for(int i = 0; i < N; i++) {
@@ -238,6 +240,8 @@ int main(int argc, char *argv[])
     }
 
     triangle_sum = triangle_sum / 3;
+
+    /* ALGORITHM ENDS HERE */
 
     /* We stop measuring time at this point */
     gettimeofday(&end,NULL);
