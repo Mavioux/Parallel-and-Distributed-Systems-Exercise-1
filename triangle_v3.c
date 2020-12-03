@@ -3,18 +3,13 @@
 #include <time.h>
 #include "mmio.h"
 #include "coo2csc.h"
+#include "readfile.h"
 
-void print1DMatrix(int* matrix, int size){
-    int i = 0;
-    for(i = 0; i < size; i++){
-        printf("%d: %d \n",i, matrix[i]);
-    }
-}
 
 int main(int argc, char *argv[])
 {
-    int ret_code;
-    MM_typecode matcode;
+    // int ret_code;
+    // MM_typecode matcode;
     FILE *f;
     uint32_t M, N, nnz;   
     int *I, *J;
@@ -33,75 +28,24 @@ int main(int argc, char *argv[])
             exit(1);
     }
 
-    if (mm_read_banner(f, &matcode) != 0)
-    {
-        printf("Could not process Matrix Market banner.\n");
-        exit(1);
-    }
+    readfile_stepone(f, &M, &N, &nnz, I, J, binary);
 
-
-    /*  This is how one can screen matrix types if their application */
-    /*  only supports a subset of the Matrix Market data types.      */
-
-    if (mm_is_complex(matcode) && mm_is_matrix(matcode) && 
-            mm_is_sparse(matcode) )
-    {
-        printf("Sorry, this application does not support ");
-        printf("Market Market type: [%s]\n", mm_typecode_to_str(matcode));
-        exit(1);
-    }
-
-    /* find out size of sparse matrix .... */
-
-    if ((ret_code = mm_read_mtx_crd_size(f, &M, &N, &nnz)) !=0)
-        exit(1);
-
-
-    /* reseve memory for matrices */
     /* For the COO */
     I = (uint32_t *) malloc(nnz * sizeof(uint32_t));
     J = (uint32_t *) malloc(nnz * sizeof(uint32_t));
     val = (double *) malloc(nnz * sizeof(double));
 
+    readfile_steptwo(f, &M, &N, &nnz, I, J, val, binary);
+
     /* For the CSC */
     uint32_t* cscRow = (uint32_t *) malloc(nnz * sizeof(uint32_t));
     uint32_t* cscColumn = (uint32_t *) malloc((N + 1) * sizeof(uint32_t));
 
-    /* Depending on the second argument of the main call our original matrix may be binary or non binary so we read the file accordingly */
-    switch (binary) 
-    {
-    case 0:
-        /* use this if the source file is not binary */
-        for (uint32_t i=0; i<nnz; i++)
-        {
-            /* I is for the rows and J for the columns */
-            fscanf(f, "%d %d %lg\n", &I[i], &J[i], &val[i]);
-            I[i]--;  /* adjust from 1-based to 0-based */
-            J[i]--;
-        }
-        break;
-
-    case 1:
-        /* use this if the source file is binary */
-        for (uint32_t i=0; i<nnz; i++)
-        {
-            /* I is for the rows and J for the columns */
-            fscanf(f, "%d %d \n", &I[i], &J[i]);
-            I[i]--;  /* adjust from 1-based to 0-based */
-            J[i]--;
-        }
-        break;
-    
-    default:
-        printf("Not a valid second argument was passed\n");
-        exit(1);
-        break;
-    }
-
-    if (f !=stdin) fclose(f);
-
-    if(M != N) {
-        printf("COO matrix' columns and rows are not the same");
+    /* Initialize c3 with zeros*/
+    int* c3;
+    c3 = malloc(N * sizeof c3);    
+    for(int i = 0; i < N; i++){
+        c3[i] = 0;
     }
 
     /*
@@ -127,13 +71,6 @@ int main(int argc, char *argv[])
 
     default:
         break;
-    }
-
-    /* Initialize c3 with zeros*/
-    int* c3;
-    c3 = malloc(N * sizeof c3);    
-    for(int i = 0; i < N; i++){
-        c3[i] = 0;
     }
 
     printf("Matrix Loaded, now Searching!\n");

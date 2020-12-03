@@ -12,14 +12,17 @@ triangle: triangle.c
 triangle_v2: triangle_v2.c
 	$(CC) $(CFLAGS) -o triangle_v2 triangle_v2.c
 
-triangle_v3: mmio.o coo2csc.o triangle_v3.o 
-	$(CC) $(CFLAGS) -o triangle_v3 mmio.c coo2csc.c triangle_v3.c
+triangle_v3: mmio.o coo2csc.o triangle_v3.o readfile.o
+	$(CC) $(CFLAGS) -o triangle_v3 mmio.c coo2csc.c readfile.c triangle_v3.c
 
 triangle_v3_cilk: mmio.o coo2csc.o triangle_v3_cilk.c
 	$(CILKCC) $(CFLAGS) -o triangle_v3_cilk mmio.c coo2csc.c triangle_v3_cilk.c -fcilkplus -lm
 
 triangle_v3_openmp: mmio.o coo2csc.o triangle_v3_openmp.c
 	$(CC) $(CFLAGS) -o triangle_v3_openmp mmio.c coo2csc.c triangle_v3_openmp.c -fopenmp
+
+readfile: mmio.o readfile.c
+	$(CC) $(CFLAGS) -o readfile mmio.c readfile.c
 
 triangle_v4: mmio.o coo2csc.o triangle_v4.o 
 	$(CC) $(CFLAGS) -o triangle_v4 mmio.c coo2csc.c triangle_v4.c
