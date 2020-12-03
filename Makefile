@@ -2,6 +2,7 @@ CC=gcc
 MPICC=mpicc
 CILKCC=/usr/local/OpenCilk-9.0.1-Linux/bin/clang
 CFLAGS=-O3
+PTHREADSFLAGS = -O2 -pthread
 
 default: all
 
@@ -32,8 +33,14 @@ triangle_v4_cilk: mmio.o coo2csc.o triangle_v4_cilk.c
 triangle_v4_openmp: mmio.o coo2csc.o triangle_v4_openmp.c
 	$(CC) $(CFLAGS) -o triangle_v4_openmp mmio.c coo2csc.c triangle_v4_openmp.c -fopenmp
 
+# triangle_v4_pthreads: mmio.o coo2csc.o triangle_v4_pthreads.c
+# 	$(CC) $(CFLAGS) -Wall -g -pthread -o triangle_v4_pthreads mmio.c coo2csc.c triangle_v4_pthreads.c -lpthread -lm
+
 triangle_v4_pthreads: mmio.o coo2csc.o triangle_v4_pthreads.c
-	$(CC) $(CFLAGS) -o triangle_v4_pthreads mmio.c coo2csc.c triangle_v4_pthreads.c
+	$(CC) $(PTHREADSFLAGS) -o triangle_v4_pthreads mmio.c coo2csc.c triangle_v4_pthreads.c
+
+test : test.c
+	$(CC) $(PTHREADSFLAGS) -o test test.c -lpthread
 
 %.o: %.c
 	$(CC) $(CFLAGS) -c -o $@ $<
