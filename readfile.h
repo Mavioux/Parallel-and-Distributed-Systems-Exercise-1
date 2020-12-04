@@ -26,4 +26,6 @@ void readfile_steptwo(
     int binary    
     );
 
+void print1DMatrix(int* matrix, int size);
+
 #endif
