@@ -1,0 +1,116 @@
+./triangle_v4_pthreads ./matrixes/belgium_osm/belgium_osm.mtx 1 8
+
+Matrix Loaded!
+
+Triangle Sum: 2420
+Duration: 0.255698
+
+./triangle_v4_pthreads ./matrixes/dblp-2010/dblp-2010.mtx 1 8
+
+Matrix Loaded!
+
+Triangle Sum: 1676652
+Duration: 0.361125
+
+./triangle_v4_pthreads ./matrixes/mycielskian13/mycielskian13.mtx 1 8
+
+Matrix Loaded!
+
+Triangle Sum: 0
+Duration: 5.486270
+
+./triangle_v4_pthreads ./matrixes/NACA0015/NACA0015.mtx 1 8
+
+Matrix Loaded!
+
+Triangle Sum: 2075635
+Duration: 0.671697
+
+
+./triangle_v4_pthreads ./matrixes/belgium_osm/belgium_osm.mtx 1 8
+
+Matrix Loaded!
+
+Triangle Sum: 2420
+Duration: 0.239977
+
+./triangle_v4_pthreads ./matrixes/dblp-2010/dblp-2010.mtx 1 8
+
+Matrix Loaded!
+
+Triangle Sum: 1676652
+Duration: 0.316412
+
+./triangle_v4_pthreads ./matrixes/mycielskian13/mycielskian13.mtx 1 8
+
+Matrix Loaded!
+
+Triangle Sum: 0
+Duration: 5.005414
+
+./triangle_v4_pthreads ./matrixes/NACA0015/NACA0015.mtx 1 8
+
+Matrix Loaded!
+
+Triangle Sum: 2075635
+Duration: 0.559288
+
+
+./triangle_v4_pthreads ./matrixes/belgium_osm/belgium_osm.mtx 1 8
+
+Matrix Loaded!
+
+Triangle Sum: 2420
+Duration: 0.255247
+
+./triangle_v4_pthreads ./matrixes/dblp-2010/dblp-2010.mtx 1 8
+
+Matrix Loaded!
+
+Triangle Sum: 1676652
+Duration: 0.358486
+
+./triangle_v4_pthreads ./matrixes/mycielskian13/mycielskian13.mtx 1 8
+
+Matrix Loaded!
+
+Triangle Sum: 0
+Duration: 5.409279
+
+./triangle_v4_pthreads ./matrixes/NACA0015/NACA0015.mtx 1 8
+
+Matrix Loaded!
+
+Triangle Sum: 2075635
+Duration: 0.677586
+
+
+./triangle_v4_pthreads ./matrixes/belgium_osm/belgium_osm.mtx 1 8
+
+Matrix Loaded!
+
+Triangle Sum: 2420
+Duration: 0.258489
+
+./triangle_v4_pthreads ./matrixes/dblp-2010/dblp-2010.mtx 1 8
+
+Matrix Loaded!
+
+Triangle Sum: 1676652
+Duration: 0.375820
+
+./triangle_v4_pthreads ./matrixes/mycielskian13/mycielskian13.mtx 1 8
+
+Matrix Loaded!
+
+Triangle Sum: 0
+Duration: 5.457827
+
+./triangle_v4_pthreads ./matrixes/NACA0015/NACA0015.mtx 1 8
+
+Matrix Loaded!
+
+Triangle Sum: 2075635
+Duration: 0.652024
+
+
