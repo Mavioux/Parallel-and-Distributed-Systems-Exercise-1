@@ -1,103 +1,75 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include <sys/time.h>
+#include <sys/types.h>
 #include "mmio.h"
 #include "coo2csc.h"
 
-void print1DMatrix(int* matrix, int size){
-    int i = 0;
-    for(i = 0; i < size; i++){
-        printf("%d: %d \n",i, matrix[i]);
-    }
+#include <pthread.h>
+
+#define MAX_THREAD 1000
+
+ struct matrix{
+    uint32_t* cscRow;
+    uint32_t* cscColumn;
+    uint32_t* c_values;
+    int nnz;
+    int start;
+    int end;
+    int id;
+ };
+
+void *multiplication(void* arg) {
+    struct matrix* mul_matrix = arg; 
+
+    for(int i = mul_matrix->start; i < mul_matrix->end; i++) {
+      for(int j = 0; j < mul_matrix->cscColumn[i+1] - mul_matrix->cscColumn[i]; j++) {
+          int a_row = mul_matrix->cscRow[mul_matrix->cscColumn[i] + j];
+          int a_col = i;
+          // // Element of (A*A)[i,j]
+          int k_size = mul_matrix->cscColumn[a_row+1] - mul_matrix->cscColumn[a_row];  
+          int l_size = mul_matrix->cscColumn[a_col+1] - mul_matrix->cscColumn[a_col];    
+          int *l = malloc((l_size) * sizeof(int));
+          int *k = malloc((k_size) * sizeof(int));
+          /* Create the l and k vectors with the appropriate values */
+          for(int x = 0; x < k_size; x++) {
+              k[x] = mul_matrix->cscRow[mul_matrix->cscColumn[a_row] + x];
+          }
+          for(int x = 0; x < l_size; x++) {
+              l[x] = mul_matrix->cscRow[mul_matrix->cscColumn[a_col] + x];
+          }
+
+          /* Compare k and l elements */
+          int k_pointer = 0;
+          int l_pointer = 0;
+          int value = 0;
+          while(k_pointer != k_size && l_pointer != l_size) {
+              if(k[k_pointer] == l[l_pointer]) {
+                  value++;
+                  k_pointer++;
+                  l_pointer++;
+              }
+              else if(k[k_pointer] > l[l_pointer]) {
+                  l_pointer++;
+              }
+              else
+              {
+                  k_pointer++;
+              }                
+          }        
+          if(value) {
+              mul_matrix->c_values[mul_matrix->cscColumn[i] + j] = value;
+          }
+      }
+    } 
+
+    pthread_exit(NULL);
 }
 
-void multiplication(
-    uint32_t* cscRow,
-    uint32_t* cscColumn,
-    uint32_t* c_cscRow,
-    uint32_t* c_cscColumn,
-    uint32_t* c_values,
-    int N,
-    int nnz) {
-
-    // C = A.*(A*A)   
-    for(int i = 0; i < N; i++) {
-       for(int j = 0; j < cscColumn[i+1] - cscColumn[i]; j++) {
-            int a_row = cscRow[cscColumn[i] + j];
-            int a_col = i;
-
-            // Element of (A*A)[i,j]
-            int k_size = cscColumn[a_row+1] - cscColumn[a_row];  
-            int l_size = cscColumn[a_col+1] - cscColumn[a_col];    
-            int *l = malloc((l_size) * sizeof(int));
-            int *k = malloc((k_size) * sizeof(int));
-            /* Create the l and k vectors with the appropriate values */
-            for(int x = 0; x < k_size; x++) {
-                k[x] = cscRow[cscColumn[a_row] + x];
-            }
-            for(int x = 0; x < l_size; x++) {
-                l[x] = cscRow[cscColumn[a_col] + x];
-            }
-
-            /* Compare k and l elements */
-            int k_pointer = 0;
-            int l_pointer = 0;
-            int value = 0;
-            while(k_pointer != k_size && l_pointer != l_size) {
-                if(k[k_pointer] == l[l_pointer]) {
-                    value++;
-                    k_pointer++;
-                    l_pointer++;
-                }
-                else if(k[k_pointer] > l[l_pointer]) {
-                    l_pointer++;
-                }
-                else
-                {
-                    k_pointer++;
-                }                
-            }        
-            if(value) {
-                c_values[cscColumn[i] + j] = value;
-            }
-            free(l);
-            free(k);
-        }
-    }
-    /* Since no value can be zero other than the original ones, we can safely assume that row and column arrays of C matrix will have the identical elements with A matrix */
-}
-
-void matrixTimesVector(
-    uint32_t* c_cscColumn,   
-    uint32_t* c_cscRow, 
-    uint32_t* c_values,
-    int* result_vector, 
-    uint32_t* v,
-    int N                         
-) {
-    /* Multiplication of a NxN matrix with a Nx1 vector
-    We search the whole column (-> row since it is symmetric)
-    Then every row that exists (-> column) has a specific value
-    So we add up the multiplication of each row element with the value */
-    /* Not worth parallelizing here */
-    /* Because it requires mutex when writing the result_vector[row] */
-    for(int i = 0; i < N; i++) {
-        for(int j = 0; j < c_cscColumn[i+1] - c_cscColumn[i]; j++) {
-            int row = c_cscRow[c_cscColumn[i] + j];
-            int col = i;
-            int value = c_values[c_cscColumn[i] + j];
-            /* we now have the element (row, col) | its value is value[] */
-            /* Because of its symmetry we also have the element (col, row) */
-            // pthread_mutex_lock(&mutex);
-            result_vector[row] += value * v[col]; /* res[row] += A[row, col] * v[col] */
-            // pthread_mutex_unlock(&mutex);
-        }
-    }
-}
-
-int main(int argc, char *argv[])
-{
-    int ret_code;
+int main(int argc, char* argv[]) {
+  
+  int ret_code;
     MM_typecode matcode;
     FILE *f;
     uint32_t M, N, nnz;   
@@ -105,7 +77,6 @@ int main(int argc, char *argv[])
     double *val;
     int binary = atoi(argv[2]);
     int num_of_threads = atoi(argv[3]);
-    char* string_num_of_threads = argv[3];
     struct timeval start, end;
 
     if (argc < 2)
@@ -140,7 +111,6 @@ int main(int argc, char *argv[])
     if ((ret_code = mm_read_mtx_crd_size(f, &M, &N, &nnz)) !=0)
         exit(1);
 
-
     /* Reseve memory for matrices */
 
     /* For the COO */
@@ -148,15 +118,6 @@ int main(int argc, char *argv[])
     I = (uint32_t *) malloc(2 * nnz * sizeof(uint32_t));
     J = (uint32_t *) malloc(2 * nnz * sizeof(uint32_t));
     val = (double *) malloc(nnz * sizeof(double));
-
-    /* For the CSC */
-    uint32_t* cscRow = (uint32_t *) malloc(2 * nnz * sizeof(uint32_t));
-    uint32_t* cscColumn = (uint32_t *) malloc((N + 1) * sizeof(uint32_t));
-
-    /* For the C CSC */
-    uint32_t* c_cscRow = (uint32_t *) malloc(0 * sizeof(uint32_t));
-    uint32_t* c_values = (uint32_t *) malloc(0 * sizeof(uint32_t));
-    uint32_t* c_cscColumn = (uint32_t *) malloc((N + 1) * sizeof(uint32_t));
 
     /* Depending on the second argument of the main call our original matrix may be binary or non binary so we read the file accordingly */
     switch (binary) 
@@ -203,6 +164,10 @@ int main(int argc, char *argv[])
         J[nnz + i] = I[i];
     }
 
+    /* For the CSC */
+    uint32_t* cscRow = (uint32_t *) malloc(2 * nnz * sizeof(uint32_t));
+    uint32_t* cscColumn = (uint32_t *) malloc((N + 1) * sizeof(uint32_t));
+
     /* Because the code works for an upper triangular matrix, we change the J, I according to the symmetric table that we have as input and the help of flag */
     /* flag 0 = upper triangular -> I,J | flag = 1 lower triangular -> J,I */
     int flag = 0;
@@ -222,6 +187,11 @@ int main(int argc, char *argv[])
     default:
         break;
     }
+
+    /* For the C CSC */
+    uint32_t* c_cscRow = (uint32_t *) malloc(2 * nnz * sizeof(uint32_t));
+    uint32_t* c_values = (uint32_t *) malloc(2 * nnz * sizeof(uint32_t));
+    uint32_t* c_cscColumn = (uint32_t *) malloc((N + 1) * sizeof(uint32_t));
 
     printf("\nMatrix Loaded!\n");
 
@@ -247,22 +217,64 @@ int main(int argc, char *argv[])
     }
 
     /* We measure time from this point */
-    gettimeofday(&start,NULL);
+    gettimeofday(&start,NULL); 
 
-    /* C = A hadamard A * A */
-    /* Initialization and memory allocation of C matrix */   
-    c_cscRow = realloc(c_cscRow, 2 * nnz * sizeof(int));
-    c_values = realloc(c_cscRow, 2 * nnz * sizeof(int));
-    multiplication(cscRow, cscColumn, c_cscRow, c_cscColumn, c_values, N, nnz);
+    //Assign matrix atributes
+    struct matrix matrix[num_of_threads];
+
+    pthread_t *threads;
+    threads = (pthread_t *)malloc(num_of_threads*sizeof(pthread_t));
+
+    //Parallelize the for loop by breaking it into chunks
+    int chunk = 1;
+    if(num_of_threads > 0) {
+        chunk = N / (num_of_threads);
+    }
+
+    for(int i = 0; i < num_of_threads-1; i++) {
+      matrix[i].cscRow = cscRow;
+      matrix[i].cscColumn = cscColumn;
+      matrix[i].c_values = c_values;
+      matrix[i].start = i * chunk;
+      matrix[i].end = matrix[i].start + chunk;
+      matrix[i].nnz = nnz;
+      matrix[i].id = i;
+      pthread_create(&threads[i], NULL, multiplication, &matrix[i]);
+      // multiplication(&matrix[i]);
+    }
+    // The last thread is left out so as to calculate the mod of the chunk division!
+    matrix[num_of_threads - 1].cscRow = cscRow;
+    matrix[num_of_threads - 1].cscColumn = cscColumn;
+    matrix[num_of_threads - 1].c_values = c_values;
+    matrix[num_of_threads - 1].start = (num_of_threads - 1) * chunk;
+    matrix[num_of_threads - 1].end = matrix[num_of_threads - 1].start + chunk + (N % num_of_threads);
+    matrix[num_of_threads - 1].nnz = nnz;
+    matrix[num_of_threads - 1].id = num_of_threads - 1;    
+    pthread_create(&threads[num_of_threads - 1], NULL, multiplication, &matrix[num_of_threads - 1]);
+
+    for(int i = 0; i < num_of_threads; i++) {
+      pthread_join(threads[i], NULL);
+    }
+
     c_cscColumn = cscColumn;
     c_cscRow = cscRow;
 
-    matrixTimesVector(c_cscColumn, c_cscRow, c_values, result_vector, v, N);
-
-    
-    // print1DMatrix(result_vector,N);
+    /* Multiplication of a NxN matrix with a Nx1 vector
+    We search the whole column (aka row since it is symmetric)
+    Then every row that exists (aka column) has a specific value
+    So we add up the multiplication of each row element with the value*/
+    for(int i = 0; i < N; i++) {
+        // printf("i: %d \n", i);
+        for(int j = 0; j < c_cscColumn[i+1] - c_cscColumn[i]; j++) {
+            int row = c_cscRow[c_cscColumn[i] + j];
+            int col = i;
+            int value = c_values[c_cscColumn[i] + j];
+            // we now have the element (row, col) | its value is value[]
+            // Because of its symmetry we also have the element (col, row)
+            result_vector[row] += value * v[col]; /* res[row] += A[row, col] * v[col] */
+        }
+    }
     int triangle_sum = 0;
-    /* No real benefit parallelizing this either */
     for(int i = 0; i < N; i++) {
         c3[i] = result_vector[i] / 2;
         triangle_sum += c3[i];
@@ -276,16 +288,6 @@ int main(int argc, char *argv[])
 
     printf("\nTriangle Sum: %d",  triangle_sum);
     printf("\nDuration: %f\n",  duration);
-
-    /* Deallocate the arrays */
-    free(I);
-    free(J);
-    free(c_cscRow);
-    free(c_cscColumn);
-    free(c3);
-    free(v);
-    free(result_vector);
-
-	return 0;
+  
+  exit(0);
 }
-
