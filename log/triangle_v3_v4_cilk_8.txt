@@ -1,0 +1,360 @@
+./triangle_v3_cilk ./matrixes/belgium_osm/belgium_osm.mtx 1 8
+There are 8 workers.
+Matrix Loaded, now Searching!
+Sum: 320 
+Duration: 0.025812 
+
+./triangle_v3_cilk ./matrixes/com-Youtube/com-Youtube.mtx 1 8
+There are 8 workers.
+Matrix Loaded, now Searching!
+Sum: 509735 
+Duration: 0.793033 
+
+./triangle_v3_cilk ./matrixes/dblp-2010/dblp-2010.mtx 1 8
+There are 8 workers.
+Matrix Loaded, now Searching!
+Sum: 292759 
+Duration: 0.316259 
+
+./triangle_v3_cilk ./matrixes/mycielskian13/mycielskian13.mtx 1 8
+There are 8 workers.
+Matrix Loaded, now Searching!
+Sum: 0 
+Duration: 1.867826 
+
+./triangle_v3_cilk ./matrixes/NACA0015/NACA0015.mtx 1 8
+There are 8 workers.
+Matrix Loaded, now Searching!
+Sum: 265362 
+Duration: 0.456565 
+
+
+./triangle_v4_cilk ./matrixes/belgium_osm/belgium_osm.mtx 1 8
+
+Matrix Loaded!
+There are 8 workers.
+
+Triangle Sum: 2420
+Duration: 0.179069
+
+./triangle_v4_cilk ./matrixes/com-Youtube/com-Youtube.mtx 1 8
+
+Matrix Loaded!
+There are 8 workers.
+
+Triangle Sum: 3056386
+Duration: 1.188916
+
+./triangle_v4_cilk ./matrixes/dblp-2010/dblp-2010.mtx 1 8
+
+Matrix Loaded!
+There are 8 workers.
+
+Triangle Sum: 1676652
+Duration: 0.121000
+
+./triangle_v4_cilk ./matrixes/mycielskian13/mycielskian13.mtx 1 8
+
+Matrix Loaded!
+There are 8 workers.
+
+Triangle Sum: 0
+Duration: 0.330083
+
+./triangle_v4_cilk ./matrixes/NACA0015/NACA0015.mtx 1 8
+
+Matrix Loaded!
+There are 8 workers.
+
+Triangle Sum: 2075635
+Duration: 0.384617
+
+
+./triangle_v3_cilk ./matrixes/belgium_osm/belgium_osm.mtx 1 8
+There are 8 workers.
+Matrix Loaded, now Searching!
+Sum: 278 
+Duration: 0.019412 
+
+./triangle_v3_cilk ./matrixes/com-Youtube/com-Youtube.mtx 1 8
+There are 8 workers.
+Matrix Loaded, now Searching!
+Sum: 390852 
+Duration: 0.922379 
+
+./triangle_v3_cilk ./matrixes/dblp-2010/dblp-2010.mtx 1 8
+There are 8 workers.
+Matrix Loaded, now Searching!
+Sum: 294113 
+Duration: 0.361006 
+
+./triangle_v3_cilk ./matrixes/mycielskian13/mycielskian13.mtx 1 8
+There are 8 workers.
+Matrix Loaded, now Searching!
+Sum: 0 
+Duration: 1.853646 
+
+./triangle_v3_cilk ./matrixes/NACA0015/NACA0015.mtx 1 8
+There are 8 workers.
+Matrix Loaded, now Searching!
+Sum: 262208 
+Duration: 0.596629 
+
+
+./triangle_v4_cilk ./matrixes/belgium_osm/belgium_osm.mtx 1 8
+
+Matrix Loaded!
+There are 8 workers.
+
+Triangle Sum: 2420
+Duration: 0.231498
+
+./triangle_v4_cilk ./matrixes/com-Youtube/com-Youtube.mtx 1 8
+
+Matrix Loaded!
+There are 8 workers.
+
+Triangle Sum: 3056386
+Duration: 1.268417
+
+./triangle_v4_cilk ./matrixes/dblp-2010/dblp-2010.mtx 1 8
+
+Matrix Loaded!
+There are 8 workers.
+
+Triangle Sum: 1676652
+Duration: 0.141398
+
+./triangle_v4_cilk ./matrixes/mycielskian13/mycielskian13.mtx 1 8
+
+Matrix Loaded!
+There are 8 workers.
+
+Triangle Sum: 0
+Duration: 0.402214
+
+./triangle_v4_cilk ./matrixes/NACA0015/NACA0015.mtx 1 8
+
+Matrix Loaded!
+There are 8 workers.
+
+Triangle Sum: 2075635
+Duration: 0.581531
+
+
+./triangle_v3_cilk ./matrixes/belgium_osm/belgium_osm.mtx 1 8
+There are 8 workers.
+Matrix Loaded, now Searching!
+Sum: 279 
+Duration: 0.024239 
+
+./triangle_v3_cilk ./matrixes/com-Youtube/com-Youtube.mtx 1 8
+There are 8 workers.
+Matrix Loaded, now Searching!
+Sum: 169176 
+Duration: 0.789980 
+
+./triangle_v3_cilk ./matrixes/dblp-2010/dblp-2010.mtx 1 8
+There are 8 workers.
+Matrix Loaded, now Searching!
+Sum: 300226 
+Duration: 0.300047 
+
+./triangle_v3_cilk ./matrixes/mycielskian13/mycielskian13.mtx 1 8
+There are 8 workers.
+Matrix Loaded, now Searching!
+Sum: 0 
+Duration: 1.855169 
+
+./triangle_v3_cilk ./matrixes/NACA0015/NACA0015.mtx 1 8
+There are 8 workers.
+Matrix Loaded, now Searching!
+Sum: 265262 
+Duration: 0.442883 
+
+
+./triangle_v4_cilk ./matrixes/belgium_osm/belgium_osm.mtx 1 8
+
+Matrix Loaded!
+There are 8 workers.
+
+Triangle Sum: 2420
+Duration: 0.171863
+
+./triangle_v4_cilk ./matrixes/com-Youtube/com-Youtube.mtx 1 8
+
+Matrix Loaded!
+There are 8 workers.
+
+Triangle Sum: 3056386
+Duration: 1.191893
+
+./triangle_v4_cilk ./matrixes/dblp-2010/dblp-2010.mtx 1 8
+
+Matrix Loaded!
+There are 8 workers.
+
+Triangle Sum: 1676652
+Duration: 0.124700
+
+./triangle_v4_cilk ./matrixes/mycielskian13/mycielskian13.mtx 1 8
+
+Matrix Loaded!
+There are 8 workers.
+
+Triangle Sum: 0
+Duration: 0.329026
+
+./triangle_v4_cilk ./matrixes/NACA0015/NACA0015.mtx 1 8
+
+Matrix Loaded!
+There are 8 workers.
+
+Triangle Sum: 2075635
+Duration: 0.377063
+
+
+./triangle_v3_cilk ./matrixes/belgium_osm/belgium_osm.mtx 1 8
+There are 8 workers.
+Matrix Loaded, now Searching!
+Sum: 353 
+Duration: 0.026496 
+
+./triangle_v3_cilk ./matrixes/com-Youtube/com-Youtube.mtx 1 8
+There are 8 workers.
+Matrix Loaded, now Searching!
+Sum: 376760 
+Duration: 0.968216 
+
+./triangle_v3_cilk ./matrixes/dblp-2010/dblp-2010.mtx 1 8
+There are 8 workers.
+Matrix Loaded, now Searching!
+Sum: 263169 
+Duration: 0.286888 
+
+./triangle_v3_cilk ./matrixes/mycielskian13/mycielskian13.mtx 1 8
+There are 8 workers.
+Matrix Loaded, now Searching!
+Sum: 0 
+Duration: 2.052021 
+
+./triangle_v3_cilk ./matrixes/NACA0015/NACA0015.mtx 1 8
+There are 8 workers.
+Matrix Loaded, now Searching!
+Sum: 262852 
+Duration: 0.588607 
+
+
+./triangle_v4_cilk ./matrixes/belgium_osm/belgium_osm.mtx 1 8
+
+Matrix Loaded!
+There are 8 workers.
+
+Triangle Sum: 2420
+Duration: 0.213196
+
+./triangle_v4_cilk ./matrixes/com-Youtube/com-Youtube.mtx 1 8
+
+Matrix Loaded!
+There are 8 workers.
+
+Triangle Sum: 3056386
+Duration: 1.263148
+
+./triangle_v4_cilk ./matrixes/dblp-2010/dblp-2010.mtx 1 8
+
+Matrix Loaded!
+There are 8 workers.
+
+Triangle Sum: 1676652
+Duration: 0.157578
+
+./triangle_v4_cilk ./matrixes/mycielskian13/mycielskian13.mtx 1 8
+
+Matrix Loaded!
+There are 8 workers.
+
+Triangle Sum: 0
+Duration: 0.320455
+
+./triangle_v4_cilk ./matrixes/NACA0015/NACA0015.mtx 1 8
+
+Matrix Loaded!
+There are 8 workers.
+
+Triangle Sum: 2075635
+Duration: 0.593919
+
+
+./triangle_v3_cilk ./matrixes/belgium_osm/belgium_osm.mtx 1 8
+There are 8 workers.
+Matrix Loaded, now Searching!
+Sum: 248 
+Duration: 0.025071 
+
+./triangle_v3_cilk ./matrixes/com-Youtube/com-Youtube.mtx 1 8
+There are 8 workers.
+Matrix Loaded, now Searching!
+Sum: 429447 
+Duration: 0.824029 
+
+./triangle_v3_cilk ./matrixes/dblp-2010/dblp-2010.mtx 1 8
+There are 8 workers.
+Matrix Loaded, now Searching!
+Sum: 266259 
+Duration: 0.316162 
+
+./triangle_v3_cilk ./matrixes/mycielskian13/mycielskian13.mtx 1 8
+There are 8 workers.
+Matrix Loaded, now Searching!
+Sum: 0 
+Duration: 1.880166 
+
+./triangle_v3_cilk ./matrixes/NACA0015/NACA0015.mtx 1 8
+There are 8 workers.
+Matrix Loaded, now Searching!
+Sum: 265082 
+Duration: 0.492571 
+
+
+./triangle_v4_cilk ./matrixes/belgium_osm/belgium_osm.mtx 1 8
+
+Matrix Loaded!
+There are 8 workers.
+
+Triangle Sum: 2420
+Duration: 0.176277
+
+./triangle_v4_cilk ./matrixes/com-Youtube/com-Youtube.mtx 1 8
+
+Matrix Loaded!
+There are 8 workers.
+
+Triangle Sum: 3056386
+Duration: 1.192548
+
+./triangle_v4_cilk ./matrixes/dblp-2010/dblp-2010.mtx 1 8
+
+Matrix Loaded!
+There are 8 workers.
+
+Triangle Sum: 1676652
+Duration: 0.123417
+
+./triangle_v4_cilk ./matrixes/mycielskian13/mycielskian13.mtx 1 8
+
+Matrix Loaded!
+There are 8 workers.
+
+Triangle Sum: 0
+Duration: 0.331834
+
+./triangle_v4_cilk ./matrixes/NACA0015/NACA0015.mtx 1 8
+
+Matrix Loaded!
+There are 8 workers.
+
+Triangle Sum: 2075635
+Duration: 0.374802
+
+
