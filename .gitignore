@@ -14,10 +14,14 @@ test
 test.o
 triangle_v4
 triangle_v4.o
-matlab
 triangle_v4_1
 triangle_v4_1.o
 triangle_v4_cilk
 triangle_v4_openmp
 triangle_v4_pthreads
 readfile.o
+log/03-Dec-20_26_50output.txt
+log/30-Nov-14_42_25output.txt
+test3.c
+temp.c
+test2.c
