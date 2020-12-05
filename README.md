@@ -20,10 +20,14 @@
 
 Χρησιμοποιώντας την εντολή make all, μπορείτε να κάνετε compile τα απαραίτητα αρχεία σε c.
 
-Για την εκτέλεση: `[executable name] [mtx file name] [1 or 0(1 for binary mtx, else 0) [number of cores in multicore codes]`
+Για την εκτέλεση: 
+
+`[executable name] [mtx file name] [1 or 0(1 for binary mtx, else 0) [number of cores in multicore codes]`
 
 Παράδειγμα εκτέλεσης: 
+
 `./triangle_v3 ./matrixes/belgium_osm/belgium_osm.mtx 1`
+
 `./triangle_v3_cilk ./matrixes/belgium_osm/belgium_osm.mtx 1 2`
 
 Εναλλακτικά μπορεί να χρησιμοποιηθεί το script `autorun.sh` το οποίο εκτελεί όλους τους κώδικες για όλους τους πίνακες με default αριθμό επεξεργαστών ίσο με 2.
