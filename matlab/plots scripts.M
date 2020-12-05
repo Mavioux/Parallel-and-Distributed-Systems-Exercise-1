@@ -42,7 +42,7 @@ title('Execution time of belgium relative to cores for each parallel implementat
 xlabel('Number of Cores')
 ylabel('Execution time in seconds')
 legend({'v3 belgium openmp','v3 belgium cilk' },'Location','northeast')
-set(gcf, 'Position', get(0, 'Screensize'));
+set(gcf, 'Position',  [100, 100, 700, 500])
 print(gcf,'belgium_v3.png','-dpng','-r300');   
 
 y1 = v4_belgium_openmp
@@ -54,7 +54,7 @@ title('Execution time of belgium relative to cores for each parallel implementat
 xlabel('Number of Cores')
 ylabel('Execution time in seconds')
 legend({'v4 belgium openmp','v4 belgium cilk', 'v4 belgium pthreads' },'Location','northeast')
-set(gcf, 'Position', get(0, 'Screensize'));
+set(gcf, 'Position',  [100, 100, 700, 500])
 print(gcf,'belgium_v4.png','-dpng','-r300');
 
 
@@ -63,11 +63,11 @@ y1 = v3_youtube_openmp
 y2 = v3_youtube_cilk
 figure
 plot(x,y1,x,y2)
-title('Execution time of belgium relative to cores for each parallel implementation of V3')
+title('Execution time of youtube relative to cores for each parallel implementation of V3')
 xlabel('Number of Cores')
 ylabel('Execution time in seconds')
 legend({'v3 youtube openmp','v3 youtube cilk' },'Location','northeast')
-set(gcf, 'Position', get(0, 'Screensize'));
+set(gcf, 'Position',  [100, 100, 700, 500])
 print(gcf,'youtube_v3.png','-dpng','-r300');
 
 y1 = v4_youtube_openmp
@@ -78,7 +78,7 @@ title('Execution time of youtube relative to cores for each parallel implementat
 xlabel('Number of Cores')
 ylabel('Execution time in seconds')
 legend({'v4 youtube openmp','v4 youtube cilk' },'Location','northeast')
-set(gcf, 'Position', get(0, 'Screensize'));
+set(gcf, 'Position',  [100, 100, 700, 500])
 print(gcf,'youtube_v4.png','-dpng','-r300');
 
 
@@ -91,7 +91,7 @@ title('Execution time of dble relative to cores for each parallel implementation
 xlabel('Number of Cores')
 ylabel('Execution time in seconds')
 legend({'v3 dble openmp','v3 dble cilk' },'Location','northeast')
-set(gcf, 'Position', get(0, 'Screensize'));
+set(gcf, 'Position',  [100, 100, 700, 500])
 print(gcf,'dble_v3.png','-dpng','-r300');
 
 y1 = v4_dble_openmp
@@ -103,7 +103,7 @@ title('Execution time of dble relative to cores for each parallel implementation
 xlabel('Number of Cores')
 ylabel('Execution time in seconds')
 legend({'v4 dble openmp','v4 dble cilk', 'v4 dble pthreads' },'Location','northeast')
-set(gcf, 'Position', get(0, 'Screensize'));
+set(gcf, 'Position',  [100, 100, 700, 500])
 print(gcf,'dble_v4.png','-dpng','-r300');
 
 
@@ -116,7 +116,7 @@ title('Execution time of cielskian relative to cores for each parallel implement
 xlabel('Number of Cores')
 ylabel('Execution time in seconds')
 legend({'v3 cielskian openmp','v3 cielskian cilk' },'Location','northeast')
-set(gcf, 'Position', get(0, 'Screensize'));
+set(gcf, 'Position',  [100, 100, 700, 500])
 print(gcf,'cielskian_v3.png','-dpng','-r300');
 
 y1 = v4_cielskian_openmp
@@ -124,11 +124,11 @@ y2 = v4_cielskian_cilk
 y3 = v4_cielskian_pthreads
 figure
 plot(x,y1,x,y2,x,y3)
-title('Execution time of belgium relative to cores for each parallel implementation of V4')
+title('Execution time of cielskian relative to cores for each parallel implementation of V4')
 xlabel('Number of Cores')
 ylabel('Execution time in seconds')
 legend({'v4 cielskian openmp','v4 cielskian cilk', 'v4 cielskian pthreads' },'Location','northeast')
-set(gcf, 'Position', get(0, 'Screensize'));
+set(gcf, 'Position',  [100, 100, 700, 500])
 print(gcf,'cielskian_v4.png','-dpng','-r300');
 
 
@@ -141,7 +141,7 @@ title('Execution time of NACA relative to cores for each parallel implementation
 xlabel('Number of Cores')
 ylabel('Execution time in seconds')
 legend({'v3 NACA openmp','v3 NACA cilk' },'Location','northeast')
-set(gcf, 'Position', get(0, 'Screensize'));
+set(gcf, 'Position',  [100, 100, 700, 500])
 print(gcf,'NACA_v3.jpg','-dpng','-r300');
 
 y1 = v4_NACA_openmp
@@ -153,5 +153,5 @@ title('Execution time of NACA relative to cores for each parallel implementation
 xlabel('Number of Cores')
 ylabel('Execution time in seconds')
 legend({'v4 NACA openmp','v4 NACA cilk', 'v4 NACA pthreads' },'Location','northeast')
-set(gcf, 'Position', get(0, 'Screensize'));
+set(gcf, 'Position',  [100, 100, 700, 500])
 print(gcf,'NACA_v4.jpg','-dpng','-r300');
