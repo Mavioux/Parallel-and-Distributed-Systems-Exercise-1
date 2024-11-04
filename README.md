@@ -1,4 +1,4 @@
-# Παράλληλα και Διανεμημένα Συστήματα 
+# Parallel and Distributed Systems
 
 The code for v1 is triangle.c
 
