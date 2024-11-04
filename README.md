@@ -1,83 +1,81 @@
 # Παράλληλα και Διανεμημένα Συστήματα 
 
-Ο κώδικας για το v1 είναι το triangle.c
+The code for v1 is triangle.c
 
-Ο κώδικας για το v2 είναι το triangle_v2.c
+The code for v2 is triangle_v2.c
 
-Οι κώδικες για το v3 είναι οι εξής:
-- triangle_v3.c (σειριακά)
-- triangle_v3_cilk.c (παραλληλισμός με cilk)
-- triangle_v3_openmp.c (παραλληλισμός με openmp)
+The code for v3 are as follows:
+- triangle_v3.c (serial)
+- triangle_v3_cilk.c (parallelization with cilk)
+- triangle_v3_openmp.c (parallelization with openmp)
 
-Οι κώδικες για το v4 είναι οι εξής:
-- triangle_v4.c (σειριακά)
-- triangle_v4_cilk.c (παραλληλισμός με cilk)
-- triangle_v4_openmp.c (παραλληλισμός με openmp)
+The code for v4 are as follows:
+- triangle_v4.c (serial)
+- triangle_v4_cilk.c (parallelization with cilk)
+- triangle_v4_openmp.c (parallelization with openmp)
 
-Στον φάκελο matrices βρίσκονται οι πίνακες σε μορφή COO
+The matrices folder contains the tables in COO format
 
-Στον φάκελο matlab βρίσκεται κώδικας για την υλοποίηση του v4 σε matlab.
+Inside the Matlab folder, there is code for implementing v4 in Matlab.
 
-Χρησιμοποιώντας την εντολή make all, μπορείτε να κάνετε compile τα απαραίτητα αρχεία σε c.
+Using the `make all` command, you can compile the necessary files in c.
 
-Για την εκτέλεση: 
+For execution:
 
 `[executable name] [mtx file name] [1 or 0(1 for binary mtx, else 0) [number of cores in multicore codes]`
 
-Παράδειγμα εκτέλεσης: 
+Example execution: 
 
 `./triangle_v3 ./matrixes/belgium_osm/belgium_osm.mtx 1`
 
 `./triangle_v3_cilk ./matrixes/belgium_osm/belgium_osm.mtx 1 2`
 
-Εναλλακτικά μπορεί να χρησιμοποιηθεί το script `autorun.sh` το οποίο εκτελεί όλους τους κώδικες για όλους τους πίνακες με default αριθμό επεξεργαστών ίσο με 2.
+Alternatively you can use `autorun.sh` which executes every code for every array with default number of processors equal to 2.
 
 ---
 
-## Αναφορά
+## Assignment Report
 
-# Παράλληλα και Διανεμημένα Συστήματα
-# Μάριος Πάκας
+# Parallel and Distributed Systems
+# Marios Pakas
 # 9498
 
-## Εργασία 1
+## Exercise 1
 
-### Ανάλυση της δομής δεδομένων
-Το πρώτο βήμα στην ανάπτυξη κώδικα για τη συγκεκριμένη εργασία ήταν η ανάγνωση Market Matrix. Επειδή στην αρχή δεν έβρισκα δυαδικούς πίνακες, μέσω του command line terminal υπάρχει επιλογή να δώσει ο χρήστης την τιμή 0 για μη δυαδικό πίνακα και 1 για δυαδικό πίνακα (default 1). Έτσι γνωρίζει το πρόγραμμα αν ο coo πίνακας έχει 3 ή 2 στοιχεία ανά γραμμή και με αυτόν τον τρόπο μπορεί να τα διαβάσει δίχως πρόβλημα μνήμης. Ωστόσο δεν δουλεύει για πίνακες με μη μηδενικά στοιχεία στη διαγώνιο. 
+### Data structure analysis
+The first step of developing the code was reading the Market Matrix files. In order to help the user input their own binary matrices for testing, I developed an option through the command line terminal to input 0 for a non-binary matrix and 1 for a binary matrix (default is 1). This way the algorithm can discern if a COO matrix has 3 or 2 elements per row in order to read the matrix without getting out of the matrix bounds. This solution does not work with matrices with no 0 elements in the diagonal. 
 
-Ακόμη, ήταν σημαντικό για το v3 να έχω τους πίνακες σε άνω τριγωνική μορφή, οπότε ήθελα να συγκρίνω την στήλη και τη γραμμή του συμμετρικού πίνακα ώστε, ανάλογα με το τι ήταν μεγαλύτερο, να το περάσω σωστά ως όρισμα στην συνάρτηση coo2csc και να βγει άνω τριγωνικός. Στο v4 με βόλεψε να δουλέψω με ολόκληρο τον πίνακα και όχι μόνο τον συμμετρικό, οπότε διπλασίαζα όλα τα στοιχεία.
+Also, it was important for version 3 of the project to have the matrices in an upper-triangular format, so as to compare the column and the row of the symmetric matrix. Depending on which value was bigger, I used it accordingly to input the matrix to the function coo2csc and have an upper-triangular matrix transformed from COO to CSC format. In the version 4 of the project I preffered to work with the whole matrix and only the symmetric one, so I mirrored the elements in order to make my algorithm work faster and more efficiently.
 
-Ανάλυση αλγορίθμου V3
-Για το V3, εφόσον έχουμε πλέον τον πίνακα σε δομή csc η σκέψη μου ήταν η εξής: Ξεκινούσα από ένα τυχαίο στοιχείο έστω row1, col1. Τότε γνωρίζω ότι:
-(row1,col1) -> (col1,col2) -> (col2,row1)
-Στη μορφή csc ο εύκολος τρόπος αναζήτησης ήταν ανά στήλη να βρίσκω ποια γραμμή είναι μη μηδενική, επομένως είχα στα χέρια μου το πρώτο στοιχείο (row1, col1). Στη συνέχεια (και επειδή, λόγω συμμετρίας του πίνακα, ίσχυε ότι στήλη = γραμμή και το αντίθετο) μπορούσα να ψάξω για το στήλη row1 και να βρω ποιες τιμές υπήρχαν ως γραμμές. Συνεπώς είχα πλέον στα χέρια μου και το στοιχείο (col2,row1). Προκειμένου να υπάρχει λοιπόν τρίγωνο έπρεπε να αναζητήσω αν στη στήλη row1 υπήρχε στοιχείο στη γραμμή με συντεταγμένη col1!  Σε περίπτωση που υπήρχε αύξανα τον αριθμό τριγώνων και τον πίνακα c3 για τις αντίστοιχες κορυφές row1, col1, col2.
+### Version 3 algorithm analysis:
+Since we have the matric in CSC format (explained above) the idea was the following: I start from a random element of the matrix and assume that element is the (row1, col1). I then know that:
+(row1,col1) -> (col1,col2) -> (col2,row1): Those elements need to exist in those indexes in order for a triangle to exist in the matrix.
+In the CSC format, the easiest way to search was to search each for a non-zero row, based on the index of the columns (incrementing the column index, meant going to the next row, and then I could deduct whether that row contains only 0s or not). Subsequently (and because the matrix was symmetric, hence column = row and vice versa), I could search for the column with the index row1 (as explained above, an element with column row1 is necessary to complete the triangle) and find the values that existed as rows now. This way I could find (potentially, if it exists) the element in the index (col2, row1). In order to complete my search the only piece missing now is the element (col1, col2), which meant that I needed to search if column col2 contains any elements with index col1. If such an element existed then I could increment the triangle counter variable and store the edges row, col1, col2 in the c3 array.
 
 ### Ανάλυση αλγορίθμου V4
-Για τον αλγόριθμο στο V4 το πρώτο βήμα ήταν να υλοποιήσω τον πολλαπλασιασμό C=A⊙(AA). Στην αρχή έκανα ξεχωριστά τον κάθε πολλαπλασιασμό, αλλά στη συνέχεια το άλλαξα διότι ο A\*A έβγαινε πυκνός και ήταν πιο περίπλοκο στο χειρισμό της μνήμης. Η ιδέα πίσω από αυτόν τον πολλαπλασιασμό είναι ότι τα μόνα στοιχεία που θα υπάρχουν θα βρίσκονται στην ίδια ακριβώς θέση με τον αρχικό πίνακα Α. Επομένως ξεκινούσα περνώντας από κάθε στοιχείο (row, col). Στο επόμενο βήμα έπρεπε να υπολογίσω την τιμή (ΑΑ)[row,col]. Η τιμή αυτή ισούται με το άθροισμα των πολλαπλασιασμών ανάμεσα στις τιμές της γραμμής row και της στήλης col. Εκμεταλλευόμενοι την ιδιότητα της συμμετρίας όμως: γραμμή = στήλη. Επομένως κρατούσα σε έναν πίνακα k όλες τις συντεταγμένες  των στηλών που υπήρχαν στην γραμμή row και σε έναν πίνακα l όλες τις συντεταγμένες των γραμμών στη στήλη col. Οι πίνακες αυτοί, λόγω της δομής csc ήταν και ταξινομημένοι, επομένως με ένα από merge sort σύγκρινα μεταξύ τους τις τιμές και εφόσον υπήρχε στήλη ίση με γραμμή σήμαινε ότι το (AA)[row,col] έπρεπε να αυξηθεί κατά 1 (αφού Α δυαδικός). Με αυτόν τον τρόπο έβρισκα τις τιμές του C, μιας και ισούταν με τις τιμές του (ΑΑ), απλώς μόνο για τις συντεταγμένες που ο Α είχε ήδη στοιχεία.
-Το επόμενο βήμα ήταν να υλοποιήσω c3=C\*e όπου e ένα διάνυσμα μοναδιαίο. Υλοποιήθηκε με τη λογική ότι το i στοιχείο στο τελικό διάνυσμα είναι το άθροισμα της i-στης γραμμής (Hint: στήλης) με όλο το διάνυσμα c3. Ουσιαστικά το i-οστο στοιχείο του c3 ισούται με το άθροισμα όλων των στοιχείων που έχει ο C στην ι-στη γραμμή!
-
+For this version of the algorithm the first step was to implement the following multiplication `C=A⊙(A*A)`. At first, I performed every multiplication on a separate step but then I changed my implementation because the result was a dense array, which was memory intensive and was not worth the tradeoff. The idea behind this multiplication is that the only common elements that will exist in the end will be at the exact same place as the original A matrix. That meant I could start by sweeping through every element (row1, col1) and in the next step calculate the value (A\*A)[row1,col1]. This value is equal to the sum of the multiplication between the values of row row1 and column col1. I take advantage of the symmetry: column = row and vice versa, which meant that I could store in a k matrix all the positions of the columns of that row and in an l matrix all the coordinates of the rows in col1. Those matrices, due to the fact that csc matrices are sorted, meant that by comparing their values serially after a merge sort indicated to me that if there exists a column with equal value to a row the result of (A\*A[row1, col1] should be incremented by one (since A is binary, it only has 1s or 0s). This way I could find the values of the A\*A multiplication but only for the positions that the A matrix already contained values. 
+The next and final step is to implement the c3=C\*e where e is a unit vector. It was implemented on the basis the the i-th element in the final vector is the sum of the i-th row (hint: column based search) with the whole c3 vector. Basically the i-th element of c3 array is equal to the sum of all elements of C in the i-th row!
 
 ## Cilk/Openmp
 ### V3
 
-Χρησιμοποίησα το cilk_for/#pragma omp parallel for για να παραλληλοποιήσω το εξωτερικό for loop και να δουλέψω για κάθε στήλη παράλληλα.
+I used `cilk_for/#pragma omp parallel` to parallelize the outer for loop and work with every loop in parallel.
 ### V4
 
-Χρησιμοποίησα το cilk_for for για να παραλληλοποιήσω και το εξωτερικό for loop αλλά και το εσωτερικό, επομένως να δουλέψω με κάθε στοιχείο ξεχωριστά. Τη μεγαλύτερη διαφορά την έκανε η παραλληλοποιήση μόνο του πρώτου for loop, ωστόσο σε μερικά datasets (τα οποία ήταν πολύ μεγάλα) παρατήρησα μικρή βελτίωση, οπότε το κράτησα και εκεί.
-Παρατήρησα ακόμη ότι ο παραλληλισμός του matrix*vector κομματιού, δεν είχε σημαντική διαφορά ή είχε χειρότερη επίδοση, για αυτό και δεν τον εφήρμοσα κι εκεί.
-Για το Openmp χρησιμοποίησα το #pragma omp parallel  μόνο στο εξωτερικό loop, σε αντίθεση με την cilk υλοποίηση διότι δεν παρατήρησα βελτίωση με τον παραλληλισμό του εσωτερικού loop, αλλά χειρότερη επίδοση.
-Pthreads
+I used the `cilk_for` to parallelize both the outer loop and the inner loop, in principle working with every element separately. The biggest effect was noticed by parallelizing only the first outer for-loop, although in some datasets (mainly big datasets) I noticed small improvement, so I kept the implementation there as well.
+I also noticed that when using OpenMP the `#pragma omp parallel` only offered improvements on the outer loop, and contrary to the implementation with cilk, there was no improvement when parallelizing the inner loop, but rather worse performance. This can be attributed to the fact that the extra overhead of the parallelization added could not be compensated by the parallel calculations, and thus was removed from my implementation.
 
-Η ιδέα πίσω από την υλοποίηση μου στο pthreads είναι η εξής. Σκέφτηκα να παραλληλίσω το for loop και να το σπάσω σε κομμάτια ανάλογα με τον αριθμό των πυρήνων (στήλες/cores). Με αυτόν τον τρόπο καλούσα παράλληλα μια συνάρτηση πολλαπλασιασμού για κάθε ένα μικρότερο υποσύνολο της στήλης, αφού ο υπολογισμός της τιμής του C ήταν ανεξάρτητη διαδικασία, συνεπώς έδινα σε κάθε επεξεργαστή το δικό του κομμάτι να δουλέψει. Η λογική αυτή παρουσιάζει περιέργως για κλήση με έναν πυρήνα χειρότερη επίδοση από το κανονικό v4, πράγμα που με παραξένεψε. Σίγουρα υπάρχει βελτίωση όσο αυξάνεται ο αριθμός των πυρήνων, σε σχέση με την κλήση για έναν επεξεργαστή, ωστόσο για μερικά datasets ακόμα και με 8 πυρήνες, δεν καταφέρνει να ξεπεράσει την σειριακή επίδοση της v4, πράγμα απογοητευτικό. Συγκεκριμένα για το cielskian έκανε εμφανώς περισσότερη ώρα, για τα Belgium, dble, περίπου τα ίδια με το σειριακό, ωστόσο για το NACA παρουσίασε σημαντική βελτίωση. Δυστυχώς για το youtube δεν μπόρεσα ποτέ να βρω το bug που το έκανε να μην τερματίζει, επομένως δεν έχω μετρήσεις για αυτό. Τέλος αξίζει να σημειωθεί ότι δεν κατάφερα ποτέ να το κάνω να δουλέψει καλύτερα απ’ότι η cilk.
+## Pthreads
 
-### Μερικά Σχόλια
+The idea behind the implementation with pthreads is the following. My idea was parallelizing the for-loop, and breaking it into small sub-for-loops relative to the number of cores (columns/core) This way I could call in parallel a multiplication function for a smaller subset of the column, which was possible since the calculation of the value of C was not dependent on the rest of the calculations, thus allocating to each processor their own independent part of the algorithm to execute. This idea provides worse performance than the serial implementation of V4 algorithm which was not expected at first, since one is parallel and one is serial, but can demonstrate the importance of a good algorithm instead of brute parallelization. Of course, as the number of cores increases the performance of the algorithm increases, but for some small datasets, even with 8 cores sharing the workload, it could not surpass the serial V4 implementation, which was quite disappointing. More specifically for the cielskian dataset the performance was worse, for the Belgium and dble it provides similar performance with the serial implementation, while for the very big NACA dataset the performance increase was significant. For youtube the algorithm never concluded so these metrics are skipped. In general I never managed to make the manual implementation of pthreads perform better than the cilk implementation.
 
-Παρατήρησα ότι ο αλγόριθμος v3 ήταν πιο γρήγορος σε όλα τα datasets πέρα από τον cielskian, στο οποίο υπερτερούσε κατά πολύ ο v4, μιας και στο cielskian δεν υπήρχαν καθόλου τρίγωνα.
-Σε μερικές παράλληλες υλοποιήσεις υπήρχε βελτίωση όσο αυξανόταν ο αριθμών των πυρήνων (προφανώς όχι γραμμική), ωστόσο από κάποιο σημείο και μετά μπορεί να υπήρχε και χειρότερη επίδοση με την αύξηση των πυρήνων.
-Ανάλογα το database κάποια υλοποίηση (ανάμεσα σε v3 και v4) παρουσίαζε βελτίωση με την παραλληλοποίηση, ενώ η άλλη χειρότερους χρόνους εκτέλεσης.
+### Comments
 
+I noticed that the v3 algorithm was faster on all datasets except for cielskian, which was far outperformed by v4, since in cielskian there were no triangles at all.
+In some parallel implementations, there was an improvement as the number of cores increased (obviously not linear), however at some point there may have been worse performance when increasing the number of cores.
+Depending on the database some implementations (between v3 and v4) showed improvement with parallelization, while others showed worse runtimes.
 
-## Διαγράμματα που απεικονίζουν τους χρόνους εκτέλεσης κάθε προγράμματος
+## Diagram with runtimes for every implementation
 
 ### V3
 
